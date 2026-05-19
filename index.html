@@ -1,0 +1,1602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Procore Plate</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --orange: #D85A30;
+  --orange-dark: #993C1D;
+  --orange-light: #FAECE7;
+  --orange-mid: #F0997B;
+  --bg: #F7F6F3;
+  --surface: #FFFFFF;
+  --surface2: #F0EEE9;
+  --border: rgba(0,0,0,0.08);
+  --border-med: rgba(0,0,0,0.14);
+  --text: #1A1916;
+  --text2: #6B6A66;
+  --text3: #A09E9A;
+  --green: #3B6D11;
+  --green-bg: #EAF3DE;
+  --amber: #854F0B;
+  --amber-bg: #FAEEDA;
+  --red: #A32D2D;
+  --red-bg: #FCEBEB;
+  --blue: #185FA5;
+  --blue-bg: #E6F1FB;
+  --purple: #534AB7;
+  --purple-bg: #EEEDFE;
+  --radius: 10px;
+  --radius-lg: 14px;
+  --sidebar: 240px;
+  --slack: #4A154B;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--text); background: var(--bg); min-height: 100vh; }
+
+.shell { display: flex; min-height: 100vh; }
+.sidebar { width: var(--sidebar); background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; position: fixed; top: 0; left: 0; bottom: 0; z-index: 10; }
+.main { margin-left: var(--sidebar); flex: 1; display: flex; flex-direction: column; }
+
+.sidebar-logo { padding: 20px 20px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+.logo-mark { width: 34px; height: 34px; background: var(--orange); border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 17px; flex-shrink: 0; }
+.logo-text { font-size: 15px; font-weight: 600; letter-spacing: -0.3px; }
+.logo-sub { font-size: 11px; color: var(--text3); margin-top: 1px; }
+
+.sidebar-user { padding: 14px 16px; border-bottom: 1px solid var(--border); }
+.user-row { display: flex; align-items: center; gap: 10px; }
+.avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--blue-bg); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; color: var(--blue); flex-shrink: 0; }
+.user-name { font-size: 13px; font-weight: 500; }
+.user-loc { font-size: 11px; color: var(--text3); margin-top: 1px; }
+.sso-pill { display: inline-flex; align-items: center; gap: 4px; background: var(--green-bg); color: var(--green); font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 20px; margin-top: 8px; letter-spacing: 0.02em; }
+
+.sidebar-nav { padding: 12px 10px; flex: 1; }
+.nav-section-label { font-size: 10px; font-weight: 600; letter-spacing: 0.08em; color: var(--text3); text-transform: uppercase; padding: 0 8px; margin: 10px 0 4px; }
+.nav-section-label:first-child { margin-top: 0; }
+.nav-item { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 8px; font-size: 13px; color: var(--text2); cursor: pointer; transition: all 0.12s; margin-bottom: 1px; }
+.nav-item:hover { background: var(--bg); color: var(--text); }
+.nav-item.active { background: var(--orange-light); color: var(--orange-dark); font-weight: 500; }
+.nav-item svg { width: 16px; height: 16px; flex-shrink: 0; opacity: 0.7; }
+.nav-item.active svg { opacity: 1; }
+.nav-badge { background: var(--orange); color: #fff; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 10px; margin-left: auto; }
+
+.sidebar-footer { padding: 14px 16px; border-top: 1px solid var(--border); font-size: 11px; color: var(--text3); }
+
+.topbar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 32px; height: 56px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 5; }
+.page-title { font-size: 15px; font-weight: 600; letter-spacing: -0.2px; }
+.page-sub { font-size: 12px; color: var(--text3); margin-top: 1px; }
+.topbar-right { display: flex; align-items: center; gap: 12px; }
+
+.content { padding: 32px; flex: 1; }
+.view { display: none; }
+.view.active { display: block; }
+
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px 24px; margin-bottom: 16px; }
+.card-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; letter-spacing: -0.1px; }
+.card-sub { font-size: 12px; color: var(--text2); }
+
+.field-label { font-size: 11px; font-weight: 600; color: var(--text2); margin-bottom: 5px; letter-spacing: 0.02em; }
+select, input[type=text], input[type=date], textarea { width: 100%; padding: 9px 12px; border: 1px solid var(--border-med); border-radius: 8px; font-size: 13px; font-family: 'DM Sans', sans-serif; background: var(--surface); color: var(--text); transition: border-color 0.12s; appearance: none; }
+select:focus, input:focus { outline: none; border-color: var(--orange); }
+select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236B6A66' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; padding-right: 30px; }
+
+.row { display: flex; gap: 12px; margin-bottom: 14px; }
+.col { flex: 1; min-width: 0; }
+
+.btn { padding: 9px 18px; border-radius: 8px; font-size: 13px; font-weight: 500; font-family: 'DM Sans', sans-serif; cursor: pointer; border: 1px solid var(--border-med); background: var(--surface); color: var(--text); transition: all 0.12s; display: inline-flex; align-items: center; gap: 6px; }
+.btn:hover { background: var(--bg); }
+.btn-primary { background: var(--orange); color: #fff; border-color: var(--orange); }
+.btn-primary:hover { background: var(--orange-dark); border-color: var(--orange-dark); }
+.btn-sm { padding: 6px 12px; font-size: 12px; }
+.btn-danger { border-color: #E24B4A; color: var(--red); }
+.btn-danger:hover { background: var(--red-bg); }
+.btn-success { border-color: #639922; color: var(--green); }
+.btn-success:hover { background: var(--green-bg); }
+.btn-icon { padding: 5px; border-radius: 6px; line-height: 1; }
+
+.badge { display: inline-block; padding: 3px 8px; border-radius: 20px; font-size: 10px; font-weight: 600; letter-spacing: 0.03em; }
+.badge-green { background: var(--green-bg); color: var(--green); }
+.badge-amber { background: var(--amber-bg); color: var(--amber); }
+.badge-red { background: var(--red-bg); color: var(--red); }
+.badge-blue { background: var(--blue-bg); color: var(--blue); }
+.badge-purple { background: var(--purple-bg); color: var(--purple); }
+.badge-gray { background: var(--surface2); color: var(--text2); }
+.badge-orange { background: var(--orange-light); color: var(--orange-dark); }
+
+.stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px; }
+.stat { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 16px 20px; }
+.stat-val { font-size: 28px; font-weight: 600; letter-spacing: -1px; margin-bottom: 2px; }
+.stat-lbl { font-size: 11px; color: var(--text2); font-weight: 500; }
+.stat-accent-red { border-top: 3px solid #E24B4A; }
+.stat-accent-amber { border-top: 3px solid #EF9F27; }
+
+.day-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
+.day-btn { padding: 14px 10px; border: 1px solid var(--border-med); border-radius: var(--radius); text-align: center; cursor: pointer; font-size: 13px; font-weight: 500; background: var(--surface); color: var(--text2); transition: all 0.12s; }
+.day-btn:hover { border-color: var(--orange-mid); color: var(--text); }
+.day-btn.sel { background: var(--orange-light); border-color: var(--orange); color: var(--orange-dark); }
+.day-btn.ordered { border-color: var(--green); background: var(--green-bg); color: var(--green); }
+.day-date { font-size: 11px; font-weight: 400; color: var(--text3); margin-top: 3px; }
+.day-btn.sel .day-date { color: var(--orange-mid); }
+.day-btn.ordered .day-date { color: var(--green); opacity: 0.7; }
+.day-badge { font-size: 9px; font-weight: 700; margin-top: 4px; letter-spacing: 0.04em; }
+
+.menu-item { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; transition: all 0.12s; }
+.menu-item:hover { border-color: var(--orange-mid); }
+.menu-item.sel { border-color: var(--orange); background: var(--orange-light); }
+.menu-item.sel .mi-name { color: var(--orange-dark); }
+.mi-name { font-size: 14px; font-weight: 500; margin-bottom: 3px; }
+.mi-desc { font-size: 12px; color: var(--text2); }
+.mi-check { color: var(--orange); font-size: 20px; flex-shrink: 0; margin-left: 6px; }
+
+.summary-box { background: var(--bg); border-radius: var(--radius); padding: 14px 18px; font-size: 13px; }
+.sum-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--border); }
+.sum-row:last-child { border-bottom: none; }
+.sum-row .lbl { color: var(--text2); font-size: 12px; }
+.sum-row .val { font-weight: 500; }
+
+.order-history-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; background: var(--bg); border-radius: var(--radius); margin-bottom: 8px; }
+.order-history-item:last-child { margin-bottom: 0; }
+.ohi-title { font-size: 13px; font-weight: 500; }
+.ohi-sub { font-size: 12px; color: var(--text2); margin-top: 2px; }
+.ohi-meta { font-size: 11px; color: var(--text3); margin-top: 2px; }
+
+/* Slack styles */
+.slack-pill { display: inline-flex; align-items: center; gap: 6px; background: var(--slack); color: #fff; font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: 20px; margin-bottom: 10px; }
+.slack-msg { background: var(--bg); border-radius: var(--radius); border-left: 3px solid var(--orange); padding: 14px 16px; font-size: 13px; line-height: 1.7; margin-bottom: 12px; }
+.slack-msg strong { font-weight: 600; }
+
+/* Tables */
+.tbl-wrap { border-radius: var(--radius-lg); border: 1px solid var(--border); overflow: hidden; background: var(--surface); }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { text-align: left; padding: 10px 16px; font-size: 11px; font-weight: 600; color: var(--text2); border-bottom: 1px solid var(--border); background: var(--bg); letter-spacing: 0.03em; }
+td { padding: 11px 16px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: #FAFAF8; }
+tr.hidden-row { display: none; }
+
+/* Menu week grid */
+.menu-week { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }
+.day-menu-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; }
+.day-menu-card.today { border-color: var(--orange); }
+.dmc-title { font-size: 10px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+.day-menu-card.today .dmc-title { color: var(--orange); }
+.dmc-item { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; border-bottom: 1px solid var(--border); font-size: 12px; gap: 6px; }
+.dmc-item:last-child { border-bottom: none; }
+.dmc-item-name { flex: 1; min-width: 0; }
+.dmc-item-actions { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+
+/* Banners */
+.info-banner { display: flex; align-items: center; gap: 10px; background: var(--bg); border-radius: 8px; padding: 10px 14px; font-size: 12px; color: var(--text2); margin-bottom: 16px; border: 1px solid var(--border); }
+.grab-banner { background: var(--amber-bg); border: 1px solid #FAC775; border-radius: 8px; padding: 10px 14px; font-size: 13px; color: var(--amber); display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.ops-banner { background: var(--green-bg); border: 1px solid #C0DD97; border-radius: 8px; padding: 10px 14px; font-size: 13px; color: var(--green); display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+
+.section-label { font-size: 10px; font-weight: 700; letter-spacing: 0.08em; color: var(--text3); text-transform: uppercase; margin-bottom: 10px; margin-top: 24px; }
+.section-label:first-child { margin-top: 0; }
+.divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+
+.two-col { display: grid; grid-template-columns: 1fr 380px; gap: 20px; align-items: start; }
+.two-col-wide { display: grid; grid-template-columns: 1fr 320px; gap: 20px; align-items: start; }
+
+/* Empty state */
+.empty-state { text-align: center; padding: 48px 24px; }
+.empty-state-icon { font-size: 36px; margin-bottom: 12px; }
+.empty-state-title { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+.empty-state-sub { font-size: 13px; color: var(--text3); margin-bottom: 20px; }
+
+/* Notification cards */
+.notif-card { margin-bottom: 16px; }
+.notif-actions { display: flex; gap: 10px; margin-top: 4px; }
+.notif-result { margin-top: 12px; }
+
+/* Same-day ticket */
+.pickup-ticket {
+  background: var(--surface); border: 2px solid var(--orange);
+  border-radius: var(--radius-lg); padding: 32px 28px;
+  text-align: center; position: relative; overflow: hidden;
+  margin-bottom: 16px;
+}
+.pickup-ticket::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0;
+  height: 5px; background: var(--orange);
+}
+.ticket-order-num {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.12em;
+  color: var(--text3); text-transform: uppercase; margin-bottom: 8px;
+}
+.ticket-item-name {
+  font-size: 22px; font-weight: 600; letter-spacing: -0.5px;
+  color: var(--text); margin-bottom: 4px;
+}
+.ticket-item-desc { font-size: 13px; color: var(--text2); margin-bottom: 24px; }
+.ticket-divider {
+  border: none; border-top: 2px dashed var(--border-med); margin: 0 0 20px;
+}
+.ticket-meta-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px;
+}
+.ticket-meta-cell { text-align: center; }
+.ticket-meta-label { font-size: 10px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; }
+.ticket-meta-value { font-size: 15px; font-weight: 600; color: var(--text); }
+.ticket-pickup-time { font-size: 26px; font-weight: 700; color: var(--orange); letter-spacing: -0.5px; }
+.ticket-status-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--green-bg); color: var(--green);
+  font-size: 12px; font-weight: 600; padding: 6px 16px;
+  border-radius: 20px; margin-bottom: 20px;
+}
+.ticket-status-badge .dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--green); animation: pulse 1.4s ease infinite;
+}
+@keyframes pulse { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:0.5; transform:scale(0.8); } }
+
+/* Toast */
+.toast { position: fixed; bottom: 24px; right: 24px; padding: 12px 20px; border-radius: 10px; font-size: 13px; font-weight: 500; z-index: 100; box-shadow: 0 4px 20px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 8px; }
+.toast-success { background: var(--green); color: #fff; }
+.toast-error { background: var(--red); color: #fff; }
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+@keyframes slideUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+.view.active { animation: fadeIn 0.18s ease; }
+.anim-in { animation: fadeIn 0.2s ease; }
+</style>
+</head>
+<body>
+<div class="shell">
+
+<!-- Sidebar -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-mark">🍽</div>
+    <div>
+      <div class="logo-text">Procore Plate</div>
+      <div class="logo-sub">Food & beverage program</div>
+    </div>
+  </div>
+  <div class="sidebar-user">
+    <div class="user-row">
+      <div class="avatar">JD</div>
+      <div>
+        <div class="user-name">Jordan Diaz</div>
+        <div class="user-loc">Austin, TX · Americas</div>
+      </div>
+    </div>
+    <div class="sso-pill">
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      Procore SSO verified
+    </div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Employee</div>
+    <div class="nav-item active" onclick="switchView('order', this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+      My orders
+    </div>
+    <div class="nav-item" onclick="switchView('sameday', this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      Same-day order
+      <span style="font-size:9px;font-weight:700;background:var(--orange);color:#fff;padding:1px 5px;border-radius:8px;margin-left:auto;letter-spacing:0.02em">NEW</span>
+    </div>
+    <div class="nav-item" id="notif-nav" onclick="switchView('notif', this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      Notifications
+      <span class="nav-badge" id="notif-count" style="display:none">0</span>
+    </div>
+    <div class="nav-section-label">Admin</div>
+    <div class="nav-item" onclick="switchView('admin', this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2"/></svg>
+      Menu management
+    </div>
+    <div class="nav-item" onclick="switchView('ops', this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      Operations
+    </div>
+  </nav>
+  <div class="sidebar-footer">
+    Week of Jun 2–6, 2025<br>
+    Plate days: Tue · Wed · Thu
+  </div>
+</aside>
+
+<!-- Main -->
+<div class="main">
+  <div class="topbar">
+    <div id="page-title-block">
+      <div class="page-title">My orders</div>
+      <div class="page-sub">Place and manage your meal selections</div>
+    </div>
+    <div class="topbar-right">
+      <button class="btn btn-sm">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>
+        Help
+      </button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- ── ORDER VIEW ── -->
+    <div id="order" class="view active">
+      <div class="two-col">
+        <div>
+          <div id="order-history-section"></div>
+          <div class="card">
+            <div class="card-title">Office location</div>
+            <div class="card-sub" style="margin-bottom:14px">Auto-detected from your Procore profile — change if visiting another office</div>
+            <div class="row">
+              <div class="col" style="max-width:180px">
+                <div class="field-label">Region</div>
+                <select id="region-sel" onchange="filterOffices()">
+                  <option value="americas">Americas</option>
+                  <option value="emea">EMEA</option>
+                  <option value="apac">APAC</option>
+                </select>
+              </div>
+              <div class="col">
+                <div class="field-label">Office</div>
+                <select id="office-sel" onchange="onOfficeChange()">
+                  <option>Austin, TX</option>
+                  <option>Carpinteria, CA</option>
+                  <option>Edmonton, CA</option>
+                  <option>Heredia, CR</option>
+                  <option>New Orleans, LA</option>
+                  <option>San Francisco, CA</option>
+                  <option>Tampa, FL</option>
+                  <option>Toronto, CA</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">Which days?</div>
+            <div class="card-sub" style="margin-bottom:14px">Select the days you'll be in the office this week</div>
+            <div class="day-grid">
+              <div class="day-btn" data-day="tue" onclick="toggleDay(this)">
+                Tuesday<div class="day-date">Jun 3</div><div class="day-badge" id="day-badge-tue"></div>
+              </div>
+              <div class="day-btn" data-day="wed" onclick="toggleDay(this)">
+                Wednesday<div class="day-date">Jun 4</div><div class="day-badge" id="day-badge-wed"></div>
+              </div>
+              <div class="day-btn" data-day="thu" onclick="toggleDay(this)">
+                Thursday<div class="day-date">Jun 5</div><div class="day-badge" id="day-badge-thu"></div>
+              </div>
+            </div>
+          </div>
+          <div id="meal-selection-area"></div>
+        </div>
+        <div>
+          <div class="card" style="position:sticky;top:76px">
+            <div class="card-title" style="margin-bottom:14px">Order summary</div>
+            <div class="summary-box" id="summary-content"></div>
+            <div style="display:flex;flex-direction:column;gap:8px;margin-top:16px">
+              <button id="confirm-btn" class="btn btn-primary" style="justify-content:center;opacity:0.5;cursor:not-allowed" onclick="confirmOrder()" disabled>Confirm order</button>
+              <button class="btn" style="justify-content:center" onclick="resetForm()">Clear selection</button>
+            </div>
+            <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border);font-size:11px;color:var(--text3)">
+              You'll receive a Slack DM reminder the morning of your order with a one-tap cancellation option.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── NOTIFICATIONS VIEW ── -->
+    <div id="notif" class="view">
+      <div style="max-width:680px">
+        <div id="notif-content"></div>
+      </div>
+    </div>
+
+    <!-- ── SAME-DAY ORDER VIEW ── -->
+    <div id="sameday" class="view">
+      <div class="two-col">
+        <div>
+          <div id="sameday-ticket" style="display:none"></div>
+          <div id="sameday-form">
+            <div class="card">
+              <div class="card-title">Location</div>
+              <div class="card-sub" style="margin-bottom:14px">Same-day ordering is available at select offices only</div>
+              <div class="row" style="margin-bottom:0">
+                <div class="col" style="max-width:260px">
+                  <div class="field-label">Office</div>
+                  <select id="sameday-office-sel" onchange="renderSamedayMenu()">
+                    <option value="Austin, TX">Austin, TX</option>
+                  </select>
+                </div>
+                <div class="col" style="display:flex;align-items:flex-end">
+                  <div style="background:var(--green-bg);border:1px solid #C0DD97;border-radius:8px;padding:8px 14px;font-size:12px;color:var(--green);display:flex;align-items:center;gap:6px">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    Kitchen open · orders close at 1:00 PM
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="card" id="sameday-menu-card">
+              <div class="card-title" style="margin-bottom:4px">Today's same-day menu</div>
+              <div class="card-sub" id="sameday-menu-sub" style="margin-bottom:16px"></div>
+              <div id="sameday-menu-items"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Summary sidebar -->
+        <div>
+          <div class="card" style="position:sticky;top:76px" id="sameday-summary-card">
+            <div class="card-title" style="margin-bottom:14px">Order summary</div>
+            <div class="summary-box" id="sameday-summary-content"></div>
+            <div style="margin-top:16px">
+              <button id="sameday-confirm-btn" class="btn btn-primary" style="width:100%;justify-content:center;opacity:0.5;cursor:not-allowed" onclick="confirmSamedayOrder()" disabled>Place order</button>
+            </div>
+            <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border);font-size:11px;color:var(--text3)">
+              Your order will be ready for pickup at the kitchen counter within 15 minutes.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── ADMIN MENU VIEW ── -->
+    <div id="admin" class="view">
+      <div class="info-banner">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+        You are scoped to <strong style="color:var(--text)">Austin, TX</strong>. Local admins manage their own office menus independently.
+      </div>
+      <div class="two-col-wide">
+        <div>
+          <div class="card">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+              <div class="card-title" style="margin-bottom:0">Week menu — Austin, TX</div>
+              <div style="display:flex;gap:8px;align-items:center">
+                <select id="admin-week-sel" style="width:auto;font-size:12px;padding:6px 10px" onchange="renderAdminMenuGrid()">
+                  <option value="jun2">Jun 2–6, 2025</option>
+                  <option value="jun9">Jun 9–13, 2025</option>
+                  <option value="jun16">Jun 16–20, 2025</option>
+                </select>
+                <button class="btn btn-sm">↑ Upload CSV</button>
+              </div>
+            </div>
+            <div class="menu-week" id="admin-menu-grid"></div>
+          </div>
+
+          <div class="card">
+            <div class="card-title" style="margin-bottom:14px">Add menu item</div>
+            <div class="row">
+              <div class="col">
+                <div class="field-label">Item name</div>
+                <input type="text" id="new-item-name" placeholder="e.g. Grilled Salmon Bowl">
+              </div>
+              <div class="col" style="max-width:140px">
+                <div class="field-label">Day</div>
+                <select id="new-item-day">
+                  <option value="tue">Tuesday</option>
+                  <option value="wed">Wednesday</option>
+                  <option value="thu">Thursday</option>
+                </select>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col">
+                <div class="field-label">Description</div>
+                <input type="text" id="new-item-desc" placeholder="Short description of the meal">
+              </div>
+              <div class="col" style="max-width:160px">
+                <div class="field-label">Dietary tag</div>
+                <select id="new-item-dietary">
+                  <option value="">None</option>
+                  <option value="GF">Gluten-free</option>
+                  <option value="Vegan">Vegan</option>
+                  <option value="Vegetarian">Vegetarian</option>
+                  <option value="Contains nuts">Contains nuts</option>
+                  <option value="Contains gluten">Contains gluten</option>
+                </select>
+              </div>
+            </div>
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-primary btn-sm" onclick="addMenuItem()">+ Add item</button>
+              <button class="btn btn-sm" onclick="clearMenuForm()">Clear</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- All offices status panel -->
+        <div>
+          <div class="card" style="position:sticky;top:76px">
+            <div class="card-title" style="margin-bottom:14px">All offices — program status</div>
+            <div style="display:flex;flex-direction:column;gap:6px" id="office-status-list">
+              <!-- rendered by JS -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── OPS VIEW ── -->
+    <div id="ops" class="view">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+        <div style="font-size:13px;color:var(--text2)">Wednesday Jun 4, 2025 · Real-time</div>
+        <div style="display:flex;gap:8px">
+          <select id="ops-region-filter" style="width:auto;font-size:12px;padding:7px 12px" onchange="filterOpsTable()">
+            <option value="">All regions</option>
+            <option value="Americas">Americas</option>
+            <option value="EMEA">EMEA</option>
+            <option value="APAC">APAC</option>
+          </select>
+          <select id="ops-office-filter" style="width:auto;font-size:12px;padding:7px 12px" onchange="filterOpsTable()">
+            <option value="">All offices</option>
+            <option>Austin, TX</option>
+            <option>Carpinteria, CA</option>
+            <option>San Francisco, CA</option>
+            <option>Heredia, CR</option>
+            <option>Tampa, FL</option>
+            <option>London, UK</option>
+            <option>Dublin, IR</option>
+            <option>Cairo, EG</option>
+            <option>Sydney, AU</option>
+            <option>Pune, IN</option>
+          </select>
+          <button class="btn btn-sm" onclick="exportOpsCSV()">Export CSV</button>
+        </div>
+      </div>
+
+      <div class="stat-grid">
+        <div class="stat"><div class="stat-val" id="ops-stat-total">—</div><div class="stat-lbl">Total orders</div></div>
+        <div class="stat"><div class="stat-val" id="ops-stat-confirmed" style="color:var(--green)">—</div><div class="stat-lbl">Confirmed attendance</div></div>
+        <div class="stat stat-accent-red"><div class="stat-val" id="ops-stat-cancelled" style="color:var(--red)">—</div><div class="stat-lbl">Cancellations</div></div>
+        <div class="stat stat-accent-amber"><div class="stat-val" id="ops-stat-grabs" style="color:var(--amber)">—</div><div class="stat-lbl">Up for grabs</div></div>
+      </div>
+
+      <div class="section-label">Cancellations needing action</div>
+      <div class="tbl-wrap" style="margin-bottom:24px">
+        <table style="table-layout:fixed">
+          <thead>
+            <tr>
+              <th style="width:16%">Employee</th>
+              <th style="width:20%">Office</th>
+              <th style="width:26%">Meal</th>
+              <th style="width:14%">Status</th>
+              <th style="width:24%">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Sam K.</td><td>Austin, TX</td><td>Grilled Salmon Bowl</td><td><span class="badge badge-amber">Up for grabs</span></td><td><button class="btn btn-sm" style="font-size:11px">Rebroadcast</button></td></tr>
+            <tr><td>Priya M.</td><td>Austin, TX</td><td>Caesar Wrap</td><td><span class="badge badge-amber">Up for grabs</span></td><td><button class="btn btn-sm" style="font-size:11px">Rebroadcast</button></td></tr>
+            <tr><td>Liam O.</td><td>London, UK</td><td>Falafel Wrap</td><td><span class="badge badge-amber">Up for grabs</span></td><td><button class="btn btn-sm" style="font-size:11px">Rebroadcast</button></td></tr>
+            <tr><td>Yuki T.</td><td>Sydney, AU</td><td>Teriyaki Bowl</td><td><span class="badge badge-red">Cancelled</span></td><td><span style="font-size:11px;color:var(--text3)">No action needed</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="section-label">All orders today — by office</div>
+      <div class="tbl-wrap">
+        <table style="table-layout:fixed" id="ops-table">
+          <thead>
+            <tr>
+              <th style="width:22%">Office</th>
+              <th style="width:14%">Region</th>
+              <th style="width:10%">Orders</th>
+              <th style="width:12%">Confirmed</th>
+              <th style="width:11%">Cancelled</th>
+              <th style="width:13%">Up for grabs</th>
+              <th style="width:18%">Menu status</th>
+            </tr>
+          </thead>
+          <tbody id="ops-tbody">
+            <tr data-region="Americas" data-office="Austin, TX"><td style="font-weight:500">Austin, TX</td><td><span class="badge badge-blue">Americas</span></td><td>47</td><td>43</td><td>3</td><td>2</td><td><span class="badge badge-green">Live</span></td></tr>
+            <tr data-region="Americas" data-office="Carpinteria, CA"><td style="font-weight:500">Carpinteria, CA</td><td><span class="badge badge-blue">Americas</span></td><td>38</td><td>36</td><td>1</td><td>1</td><td><span class="badge badge-green">Live</span></td></tr>
+            <tr data-region="Americas" data-office="San Francisco, CA"><td style="font-weight:500">San Francisco, CA</td><td><span class="badge badge-blue">Americas</span></td><td>52</td><td>49</td><td>2</td><td>2</td><td><span class="badge badge-green">Live</span></td></tr>
+            <tr data-region="Americas" data-office="Heredia, CR"><td style="font-weight:500">Heredia, CR</td><td><span class="badge badge-blue">Americas</span></td><td>22</td><td>20</td><td>1</td><td>0</td><td><span class="badge badge-green">Live</span></td></tr>
+            <tr data-region="Americas" data-office="Tampa, FL"><td style="font-weight:500">Tampa, FL</td><td><span class="badge badge-blue">Americas</span></td><td>22</td><td>22</td><td>0</td><td>0</td><td><span class="badge badge-green">Live</span></td></tr>
+            <tr data-region="EMEA" data-office="London, UK"><td style="font-weight:500">London, UK</td><td><span class="badge badge-orange">EMEA</span></td><td>41</td><td>38</td><td>3</td><td>2</td><td><span class="badge badge-green">Live</span></td></tr>
+            <tr data-region="EMEA" data-office="Dublin, IR"><td style="font-weight:500">Dublin, IR</td><td><span class="badge badge-orange">EMEA</span></td><td>29</td><td>27</td><td>1</td><td>1</td><td><span class="badge badge-green">Live</span></td></tr>
+            <tr data-region="EMEA" data-office="Cairo, EG"><td style="font-weight:500">Cairo, EG</td><td><span class="badge badge-orange">EMEA</span></td><td>18</td><td>17</td><td>1</td><td>0</td><td><span class="badge badge-green">Live</span></td></tr>
+            <tr data-region="APAC" data-office="Sydney, AU"><td style="font-weight:500">Sydney, AU</td><td><span class="badge badge-purple">APAC</span></td><td>33</td><td>31</td><td>2</td><td>1</td><td><span class="badge badge-green">Live</span></td></tr>
+            <tr data-region="APAC" data-office="Pune, IN"><td style="font-weight:500">Pune, IN</td><td><span class="badge badge-purple">APAC</span></td><td>28</td><td>26</td><td>0</td><td>0</td><td><span class="badge badge-green">Live</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+</div>
+
+<script>
+// ─────────────────────────────────────────────────────────────────────────────
+// DEMO CONFIG
+// Pinned so the Jun 2–6 week always reads as "this week" regardless of real date
+// ─────────────────────────────────────────────────────────────────────────────
+const DEMO_TODAY = '2025-06-02';
+
+// ─────────────────────────────────────────────────────────────────────────────
+// STATIC DATA
+// ─────────────────────────────────────────────────────────────────────────────
+
+const PLATE_DAYS = [
+  { key: 'tue', label: 'Tuesday',   fullLabel: 'Tuesday Jun 3',   date: 'Jun 3', iso: '2025-06-03' },
+  { key: 'wed', label: 'Wednesday', fullLabel: 'Wednesday Jun 4', date: 'Jun 4', iso: '2025-06-04' },
+  { key: 'thu', label: 'Thursday',  fullLabel: 'Thursday Jun 5',  date: 'Jun 5', iso: '2025-06-05' },
+];
+
+const DEFAULT_MENUS = {
+  'default': {
+    tue: { caterer: 'Culinary Co.', items: [
+      { name: 'Teriyaki Chicken Bowl',     desc: 'Brown rice, edamame, teriyaki glaze, sesame seeds',      dietary: 'GF'    },
+      { name: 'Veggie Banh Mi',            desc: 'Pickled daikon, cucumber, sriracha mayo, baguette',      dietary: 'Vegan' },
+      { name: 'Turkey Club Wrap',          desc: 'Roasted turkey, bacon, lettuce, tomato, flour tortilla', dietary: ''      },
+    ]},
+    wed: { caterer: 'Olive & Vine', items: [
+      { name: 'Grilled Salmon Bowl',       desc: 'Brown rice, edamame, cucumber, ginger dressing',         dietary: 'GF'    },
+      { name: 'Chicken Caesar Wrap',       desc: 'Romaine, parmesan, house dressing, flour tortilla',      dietary: ''      },
+      { name: 'Roasted Veggie Grain Bowl', desc: 'Quinoa, roasted peppers, tahini, fresh herbs',           dietary: 'Vegan' },
+    ]},
+    thu: { caterer: 'Smokehouse Co.', items: [
+      { name: 'BBQ Brisket Plate',         desc: 'Slow-smoked brisket, coleslaw, cornbread',               dietary: ''      },
+      { name: 'Cauliflower Tacos',         desc: 'Roasted cauliflower, black beans, avocado, corn tortillas', dietary: 'Vegan' },
+      { name: 'Cobb Salad',               desc: 'Romaine, chicken, bacon, blue cheese, hardboiled egg',   dietary: 'GF'    },
+    ]},
+  },
+  'London, UK': {
+    tue: { caterer: 'The Canteen', items: [
+      { name: 'Fish & Chips',             desc: 'Beer-battered cod, chunky chips, mushy peas',            dietary: ''           },
+      { name: 'Halloumi Wrap',            desc: 'Grilled halloumi, hummus, roasted veg, flatbread',       dietary: 'Vegetarian' },
+      { name: 'Chicken Tikka Bowl',       desc: 'Basmati rice, tikka masala, raita',                      dietary: 'GF'         },
+    ]},
+    wed: { caterer: 'The Canteen', items: [
+      { name: "Shepherd's Pie",           desc: 'Minced lamb, root vegetables, mashed potato topping',   dietary: ''           },
+      { name: 'Falafel Wrap',             desc: 'Fried falafel, tahini, pickled cabbage, flatbread',     dietary: 'Vegan'      },
+      { name: 'Caesar Salad',             desc: 'Cos lettuce, croutons, parmesan, house dressing',       dietary: 'Vegetarian' },
+    ]},
+    thu: { caterer: 'The Canteen', items: [
+      { name: 'Peri Peri Chicken',        desc: 'Flame-grilled chicken thighs, rice, piri piri sauce',  dietary: 'GF'         },
+      { name: 'Mushroom Risotto',         desc: 'Arborio rice, wild mushrooms, parmesan, truffle oil',  dietary: 'Vegetarian' },
+      { name: 'BLT Sandwich',             desc: 'Bacon, lettuce, tomato, mayo, sourdough',               dietary: ''           },
+    ]},
+  },
+  'San Francisco, CA': {
+    tue: { caterer: 'Bay Kitchen', items: [
+      { name: 'Miso Glazed Salmon',       desc: 'Soba noodles, edamame, pickled ginger',                 dietary: 'GF'    },
+      { name: 'Sourdough BLT',            desc: 'Heirloom tomato, bacon, aioli, local sourdough',        dietary: ''      },
+      { name: 'Mission Burrito Bowl',     desc: 'Black beans, cilantro rice, pico de gallo, guacamole', dietary: 'Vegan' },
+    ]},
+    wed: { caterer: 'Bay Kitchen', items: [
+      { name: 'Dungeness Crab Roll',      desc: 'Fresh crab, avocado, cucumber, ponzu',                  dietary: 'GF'    },
+      { name: 'Veggie Banh Mi',           desc: 'Pickled daikon, cucumber, sriracha mayo, baguette',     dietary: 'Vegan' },
+      { name: 'Chicken Pesto Wrap',       desc: 'Grilled chicken, basil pesto, arugula, tomato',         dietary: ''      },
+    ]},
+    thu: { caterer: 'Bay Kitchen', items: [
+      { name: 'Korean BBQ Bowl',          desc: 'Bulgogi beef, kimchi fried rice, sesame spinach',        dietary: 'GF'    },
+      { name: 'Mushroom Tacos',           desc: 'Portobello, chipotle crema, cabbage slaw, corn tortillas', dietary: 'Vegan' },
+      { name: 'Club Sandwich',            desc: 'Turkey, swiss, bacon, tomato, avocado, toasted bread',  dietary: ''      },
+    ]},
+  },
+};
+
+const OFFICE_STATUSES = [
+  { name: 'Austin, TX',       region: 'Americas', status: 'active'  },
+  { name: 'Bangalore, IN',    region: 'APAC',     status: 'pending' },
+  { name: 'Cairo, EG',        region: 'EMEA',     status: 'active'  },
+  { name: 'Carpinteria, CA',  region: 'Americas', status: 'active'  },
+  { name: 'Dubai, AE',        region: 'EMEA',     status: 'pending' },
+  { name: 'Dublin, IR',       region: 'EMEA',     status: 'active'  },
+  { name: 'Edmonton, CA',     region: 'Americas', status: 'none'    },
+  { name: 'Heredia, CR',      region: 'Americas', status: 'active'  },
+  { name: 'London, UK',       region: 'EMEA',     status: 'active'  },
+  { name: 'New Orleans, LA',  region: 'Americas', status: 'pending' },
+  { name: 'Pune, IN',         region: 'APAC',     status: 'active'  },
+  { name: 'San Francisco, CA',region: 'Americas', status: 'active'  },
+  { name: 'Stavanger, NO',    region: 'EMEA',     status: 'none'    },
+  { name: 'Sydney, AU',       region: 'APAC',     status: 'active'  },
+  { name: 'Tampa, FL',        region: 'Americas', status: 'active'  },
+  { name: 'Toronto, CA',      region: 'Americas', status: 'pending' },
+];
+
+// ─────────────────────────────────────────────────────────────────────────────
+// STATE
+// ─────────────────────────────────────────────────────────────────────────────
+
+const state = {
+  region: 'americas',
+  office: 'Austin, TX',
+  selectedDays: new Set(),
+  selectedMeals: {},
+  editingDays: new Set(),   // days currently being edited (existing order)
+  // Per-order notification state: { [orderId]: 'idle'|'confirmed'|'cancelled'|'grabs' }
+  notifState: {},
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// STORAGE HELPERS
+// ─────────────────────────────────────────────────────────────────────────────
+
+const ORDERS_KEY = 'procore-plate-orders-v1';
+const MENU_KEY   = 'procore-plate-menu-v1';
+
+function loadOrders() {
+  try { return JSON.parse(localStorage.getItem(ORDERS_KEY) || '[]'); }
+  catch { return []; }
+}
+function persistOrders(orders) {
+  localStorage.setItem(ORDERS_KEY, JSON.stringify(orders));
+}
+function upsertOrders(newOrders) {
+  const existing = loadOrders();
+  const newKeys = new Set(newOrders.map(o => o.office + '|' + o.iso));
+  const filtered = existing.filter(o => !newKeys.has(o.office + '|' + o.iso));
+  persistOrders([...filtered, ...newOrders]);
+}
+
+function loadStoredMenu(office) {
+  try {
+    const all = JSON.parse(localStorage.getItem(MENU_KEY) || '{}');
+    return all[office] || null;
+  } catch { return null; }
+}
+function saveStoredMenu(office, menu) {
+  try {
+    const all = JSON.parse(localStorage.getItem(MENU_KEY) || '{}');
+    all[office] = menu;
+    localStorage.setItem(MENU_KEY, JSON.stringify(all));
+  } catch {}
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MENU HELPERS
+// ─────────────────────────────────────────────────────────────────────────────
+
+function getMenu(office, dayKey) {
+  const stored = loadStoredMenu(office);
+  if (stored && stored[dayKey]) return stored[dayKey];
+  const fallback = DEFAULT_MENUS[office] || DEFAULT_MENUS['default'];
+  return fallback[dayKey];
+}
+
+function getFullMenu(office) {
+  const stored = loadStoredMenu(office);
+  const base = DEFAULT_MENUS[office] || DEFAULT_MENUS['default'];
+  if (!stored) return JSON.parse(JSON.stringify(base)); // deep copy
+  // Merge: stored takes precedence per day
+  const merged = JSON.parse(JSON.stringify(base));
+  ['tue','wed','thu'].forEach(k => {
+    if (stored[k]) merged[k] = stored[k];
+  });
+  return merged;
+}
+
+function dietaryBadgeClass(tag) {
+  if (!tag) return 'badge-gray';
+  const t = tag.toLowerCase();
+  if (['gf','vegan','vegetarian'].includes(t)) return 'badge-green';
+  if (t.includes('gluten') || t.includes('nut')) return 'badge-amber';
+  return 'badge-gray';
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ORDER VIEW RENDERING
+// ─────────────────────────────────────────────────────────────────────────────
+
+function renderOrderHistory() {
+  const orders = loadOrders();
+  const todayStr = DEMO_TODAY;
+  const upcoming = orders.filter(o => o.iso >= todayStr && o.status === 'confirmed').sort((a,b) => a.iso.localeCompare(b.iso));
+  const past     = orders.filter(o => o.iso <  todayStr || o.status === 'cancelled').sort((a,b) => b.iso.localeCompare(a.iso)).slice(0,6);
+  const container = document.getElementById('order-history-section');
+  if (!upcoming.length && !past.length) { container.innerHTML = ''; return; }
+
+  let html = '';
+  if (upcoming.length) {
+    html += `<div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <div class="card-title" style="margin-bottom:0">Your upcoming orders</div>
+        <span class="badge badge-green">${upcoming.length} confirmed</span>
+      </div>`;
+    upcoming.forEach(o => {
+      html += `<div class="order-history-item">
+        <div>
+          <div class="ohi-title">${o.dayLabel} · ${o.office}</div>
+          <div class="ohi-sub">${o.meal}</div>
+          <div class="ohi-meta">Pickup: ${o.pickup} · ${o.window}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+          <span class="badge badge-green">Confirmed</span>
+          <button class="btn btn-sm" onclick="editOrder('${o.id}')">Edit</button>
+          <button class="btn btn-sm btn-danger" onclick="cancelOrder('${o.id}')">Cancel</button>
+        </div>
+      </div>`;
+    });
+    html += `</div>`;
+  }
+  if (past.length) {
+    html += `<div class="card"><div class="card-title" style="margin-bottom:14px;color:var(--text2)">Order history</div>`;
+    past.forEach(o => {
+      const isCancelled = o.status === 'cancelled';
+      html += `<div class="order-history-item" style="opacity:0.65">
+        <div>
+          <div class="ohi-title" style="color:var(--text2)">${o.dayLabel} · ${o.office}</div>
+          <div class="ohi-sub">${o.meal}</div>
+        </div>
+        <span class="badge ${isCancelled ? 'badge-red':'badge-gray'}">${isCancelled ? 'Cancelled':'Completed'}</span>
+      </div>`;
+    });
+    html += `</div>`;
+  }
+  container.innerHTML = html;
+}
+
+function renderMealCards() {
+  const area = document.getElementById('meal-selection-area');
+  const activeDays = PLATE_DAYS.filter(d => state.selectedDays.has(d.key));
+  if (!activeDays.length) { area.innerHTML = ''; return; }
+
+  let html = '';
+  activeDays.forEach(day => {
+    const menu = getMenu(state.office, day.key);
+    const sel  = state.selectedMeals[day.key];
+    html += `<div class="card anim-in">
+      <div class="card-title">${day.fullLabel} — choose your meal</div>
+      <div class="card-sub" style="margin-bottom:16px">${state.office} · Catered by ${menu.caterer}</div>`;
+    menu.items.forEach((item, idx) => {
+      const isSel  = sel && sel.name === item.name;
+      const badge  = item.dietary ? `<span class="badge ${dietaryBadgeClass(item.dietary)}">${item.dietary}</span>` : '';
+      html += `<div class="menu-item ${isSel?'sel':''}" data-day="${day.key}" data-idx="${idx}" onclick="pickMeal(this)">
+        <div><div class="mi-name">${item.name}</div><div class="mi-desc">${item.desc}</div></div>
+        <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">${badge}${isSel?'<span class="mi-check">✓</span>':''}</div>
+      </div>`;
+    });
+    html += `</div>`;
+  });
+  area.innerHTML = html;
+}
+
+function renderSummary() {
+  const activeDays = PLATE_DAYS.filter(d => state.selectedDays.has(d.key));
+  const allPicked  = activeDays.length > 0 && activeDays.every(d => state.selectedMeals[d.key]);
+
+  let rows = activeDays.length === 0
+    ? `<div class="sum-row"><span class="lbl">Days</span><span class="val" style="color:var(--text3)">None selected</span></div>`
+    : activeDays.map(day => {
+        const meal = state.selectedMeals[day.key];
+        return `<div class="sum-row">
+          <span class="lbl">${day.label}</span>
+          <span class="val" style="${meal?'':'color:var(--text3);font-weight:400'}">${meal ? meal.name : 'Pick a meal ↓'}</span>
+        </div>`;
+      }).join('');
+
+  document.getElementById('summary-content').innerHTML = `
+    <div class="sum-row"><span class="lbl">Office</span><span class="val">${state.office}</span></div>
+    ${rows}
+    <div class="sum-row"><span class="lbl">Reminder</span><span class="val">Slack DM · 9 AM local</span></div>
+    <div class="sum-row"><span class="lbl">Pickup</span><span class="val">Kitchen, 2nd floor</span></div>
+    <div class="sum-row"><span class="lbl">Window</span><span class="val">12:00–1:00 PM</span></div>`;
+
+  const btn = document.getElementById('confirm-btn');
+  btn.disabled = !allPicked;
+  btn.style.opacity = allPicked ? '1' : '0.5';
+  btn.style.cursor  = allPicked ? 'pointer' : 'not-allowed';
+  btn.textContent   = state.editingDays.size > 0 ? 'Update order' : 'Confirm order';
+}
+
+function updateDayBadges() {
+  const orders = loadOrders();
+  PLATE_DAYS.forEach(day => {
+    const existing = orders.find(o => o.iso === day.iso && o.office === state.office && o.status === 'confirmed');
+    const btn   = document.querySelector(`.day-btn[data-day="${day.key}"]`);
+    const badge = document.getElementById(`day-badge-${day.key}`);
+    if (state.editingDays.has(day.key)) {
+      // Orange "selected" appearance — actively being edited
+      btn.classList.remove('ordered'); btn.classList.add('sel');
+      badge.textContent = 'Editing…';
+    } else if (existing) {
+      btn.classList.add('ordered'); btn.classList.remove('sel');
+      badge.textContent = '✓ Ordered';
+    } else {
+      btn.classList.remove('ordered'); btn.classList.remove('sel');
+      badge.textContent = '';
+    }
+  });
+}
+
+function updateNotifBadge() {
+  const orders   = loadOrders();
+  const todayStr = DEMO_TODAY;
+  const count    = orders.filter(o => o.iso >= todayStr && o.status === 'confirmed').length;
+  const badge    = document.getElementById('notif-count');
+  if (count > 0) { badge.style.display = ''; badge.textContent = count; }
+  else           { badge.style.display = 'none'; }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ORDER ACTIONS
+// ─────────────────────────────────────────────────────────────────────────────
+
+function editOrder(id) {
+  const orders = loadOrders();
+  const order  = orders.find(o => o.id === id);
+  if (!order) return;
+
+  const day = PLATE_DAYS.find(d => d.iso === order.iso);
+  if (!day) return;
+
+  // Mark day as being edited and pre-select current meal
+  state.editingDays.add(day.key);
+  state.selectedDays.add(day.key);
+
+  const menu = getMenu(order.office, day.key);
+  const existingItem = menu.items.find(i => i.name === order.meal);
+  // Pre-populate with current meal so it shows as selected
+  state.selectedMeals[day.key] = existingItem || { name: order.meal, desc: order.mealDesc || '', dietary: order.dietary || '' };
+
+  renderMealCards();
+  renderSummary();
+  updateDayBadges();
+
+  // Scroll down to the meal card
+  setTimeout(() => {
+    const area = document.getElementById('meal-selection-area');
+    if (area) area.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 80);
+}
+
+function toggleDay(el) {
+  const dayKey = el.dataset.day;
+  const day    = PLATE_DAYS.find(d => d.key === dayKey);
+  const orders = loadOrders();
+
+  // If this day is being edited, clicking again cancels the edit
+  if (state.editingDays.has(dayKey)) {
+    state.editingDays.delete(dayKey);
+    state.selectedDays.delete(dayKey);
+    delete state.selectedMeals[dayKey];
+    renderMealCards(); renderSummary(); updateDayBadges(); return;
+  }
+
+  // Already ordered and not in edit mode — prompt to use Edit button
+  if (orders.find(o => o.iso === day.iso && o.office === state.office && o.status === 'confirmed')) {
+    showToast('Use the "Edit" button on your order above to change your meal.', 'error'); return;
+  }
+
+  if (state.selectedDays.has(dayKey)) {
+    state.selectedDays.delete(dayKey); delete state.selectedMeals[dayKey]; el.classList.remove('sel');
+  } else {
+    state.selectedDays.add(dayKey); el.classList.add('sel');
+  }
+  renderMealCards(); renderSummary();
+}
+
+function pickMeal(el) {
+  const dayKey = el.dataset.day;
+  const idx    = parseInt(el.dataset.idx);
+  state.selectedMeals[dayKey] = getMenu(state.office, dayKey).items[idx];
+  renderMealCards(); renderSummary();
+}
+
+function onOfficeChange() {
+  state.office = document.getElementById('office-sel').value;
+  state.selectedMeals = {};
+  renderMealCards(); renderSummary(); updateDayBadges();
+}
+
+function confirmOrder() {
+  const activeDays = PLATE_DAYS.filter(d => state.selectedDays.has(d.key) && state.selectedMeals[d.key]);
+  if (!activeDays.length) return;
+  const newOrders = activeDays.map(day => ({
+    id: `${day.iso}-${state.office.replace(/[^a-z]/gi,'')}-${Date.now()}-${Math.random().toString(36).slice(2,5)}`,
+    office: state.office, region: state.region, iso: day.iso, dayLabel: day.fullLabel,
+    meal: state.selectedMeals[day.key].name, mealDesc: state.selectedMeals[day.key].desc,
+    dietary: state.selectedMeals[day.key].dietary, status: 'confirmed',
+    orderedAt: new Date().toISOString(), pickup: 'Kitchen, 2nd floor', window: '12:00–1:00 PM',
+  }));
+  const wasEditing = state.editingDays.size > 0;
+  upsertOrders(newOrders);
+  state.selectedDays = new Set(); state.selectedMeals = {}; state.editingDays = new Set();
+  document.querySelectorAll('.day-btn').forEach(b => b.classList.remove('sel'));
+  renderMealCards(); renderSummary(); renderOrderHistory(); updateDayBadges(); updateNotifBadge();
+  const n = newOrders.length;
+  showToast(wasEditing ? `Order${n>1?'s':''} updated!` : `${n} order${n>1?'s':''} confirmed! You'll get a Slack reminder on the day.`, 'success');
+}
+
+function cancelOrder(id) {
+  const orders = loadOrders();
+  const idx = orders.findIndex(o => o.id === id);
+  if (idx === -1) return;
+  orders[idx].status = 'cancelled';
+  persistOrders(orders);
+  renderOrderHistory(); updateDayBadges(); updateNotifBadge();
+  showToast('Order cancelled. The ops team has been notified.', 'success');
+}
+
+function resetForm() {
+  state.selectedDays = new Set(); state.selectedMeals = {}; state.editingDays = new Set();
+  document.querySelectorAll('.day-btn').forEach(b => b.classList.remove('sel'));
+  renderMealCards(); renderSummary(); updateDayBadges();
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// NOTIFICATIONS VIEW
+// ─────────────────────────────────────────────────────────────────────────────
+
+function renderNotifications() {
+  const orders   = loadOrders();
+  const todayStr = DEMO_TODAY;
+  const upcoming = orders.filter(o => o.iso >= todayStr && o.status === 'confirmed').sort((a,b) => a.iso.localeCompare(b.iso));
+  const container = document.getElementById('notif-content');
+
+  if (!upcoming.length) {
+    container.innerHTML = `
+      <div class="info-banner">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>
+        No upcoming orders — notifications will appear here once you've placed an order.
+      </div>
+      <div class="card">
+        <div class="empty-state">
+          <div class="empty-state-icon">🔔</div>
+          <div class="empty-state-title">No upcoming orders</div>
+          <div class="empty-state-sub">Head to My Orders to place a meal for this week.</div>
+          <button class="btn btn-primary" onclick="switchView('order', document.querySelector('.nav-item'))">Go to My orders</button>
+        </div>
+      </div>`;
+    return;
+  }
+
+  let html = `<div class="info-banner">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>
+    This simulates the Slack DM you'll receive the morning of each order. Interact with each card to walk through the flow.
+  </div>`;
+
+  upcoming.forEach(order => {
+    const ns = state.notifState[order.id] || 'idle';
+    html += `<div class="card notif-card" id="notif-card-${order.id}">
+      <div class="slack-pill">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M5.042 15.165a2.528 2.528 0 0 1-2.52 2.523A2.528 2.528 0 0 1 0 15.165a2.527 2.527 0 0 1 2.522-2.52h2.52v2.52zm1.271 0a2.527 2.527 0 0 1 2.521-2.52 2.527 2.527 0 0 1 2.521 2.52v6.313A2.528 2.528 0 0 1 8.834 24a2.528 2.528 0 0 1-2.521-2.522v-6.313zM8.834 5.042a2.528 2.528 0 0 1-2.521-2.52A2.528 2.528 0 0 1 8.834 0a2.528 2.528 0 0 1 2.521 2.522v2.52H8.834zm0 1.271a2.528 2.528 0 0 1 2.521 2.521 2.528 2.528 0 0 1-2.521 2.521H2.522A2.528 2.528 0 0 1 0 8.834a2.528 2.528 0 0 1 2.522-2.521h6.312zm10.122 2.521a2.528 2.528 0 0 1 2.522-2.521A2.528 2.528 0 0 1 24 8.834a2.528 2.528 0 0 1-2.522 2.521h-2.522V8.834zm-1.268 0a2.528 2.528 0 0 1-2.523 2.521 2.527 2.527 0 0 1-2.52-2.521V2.522A2.527 2.527 0 0 1 15.165 0a2.528 2.528 0 0 1 2.523 2.522v6.312zm-2.523 10.122a2.528 2.528 0 0 1 2.523 2.522A2.528 2.528 0 0 1 15.165 24a2.527 2.527 0 0 1-2.52-2.522v-2.522h2.52zm0-1.268a2.527 2.527 0 0 1-2.52-2.523 2.526 2.526 0 0 1 2.52-2.52h6.313A2.527 2.527 0 0 1 24 15.165a2.528 2.528 0 0 1-2.522 2.523h-6.313z"/></svg>
+        Slack DM — ${order.dayLabel} · 9:00 AM local
+      </div>
+      <div class="slack-msg">
+        <strong>🍽 Procore Plate reminder</strong><br><br>
+        Hey Jordan! You've got lunch coming on <strong>${order.dayLabel}</strong> at <strong>${order.office}</strong>.<br>
+        <strong>Meal:</strong> ${order.meal}<br>
+        <strong>Pickup:</strong> ${order.pickup} · ${order.window}<br><br>
+        Are you coming in today?
+      </div>
+      <div id="notif-actions-${order.id}">
+        ${ns === 'idle' ? `
+          <div class="notif-actions">
+            <button class="btn btn-success btn-sm" onclick="notifConfirm('${order.id}')">✓ Yes, I'll be there</button>
+            <button class="btn btn-danger btn-sm"  onclick="notifCancel('${order.id}')">✗ Not gonna make it</button>
+          </div>` : ''}
+        ${ns === 'confirmed' ? renderNotifConfirmed(order) : ''}
+        ${ns === 'cancelled' ? renderNotifCancelled(order) : ''}
+        ${ns === 'grabs'     ? renderNotifGrabs(order)     : ''}
+      </div>
+    </div>`;
+  });
+
+  container.innerHTML = html;
+}
+
+function renderNotifConfirmed(order) {
+  return `<div class="anim-in" style="background:var(--green-bg);border:1px solid #C0DD97;border-radius:var(--radius);padding:14px 16px">
+    <div style="display:flex;align-items:center;gap:8px;color:var(--green);font-weight:600;margin-bottom:4px">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      You're confirmed for ${order.dayLabel}
+    </div>
+    <div style="font-size:13px;color:var(--text2)">${order.meal} · ${order.office} · ${order.window}. See you there!</div>
+  </div>`;
+}
+
+function renderNotifCancelled(order) {
+  return `<div class="anim-in">
+    <div style="background:var(--red-bg);border:1px solid #F0AAAA;border-radius:var(--radius);padding:14px 16px;margin-bottom:12px">
+      <div style="font-size:13px;font-weight:600;color:var(--red);margin-bottom:4px">Cancellation logged</div>
+      <div style="font-size:12px;color:var(--text2)">The ${order.office} ops team has been notified via Slack.</div>
+    </div>
+    <div class="slack-pill" style="background:#0F6E56">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/></svg>
+      Ops team alert — #plate-${order.office.toLowerCase().replace(/[^a-z]/g,'-')}-ops
+    </div>
+    <div class="slack-msg">
+      <strong>⚠ Cancellation — action needed</strong><br><br>
+      <strong>Employee:</strong> Jordan Diaz<br>
+      <strong>Meal:</strong> ${order.meal} · ${order.office} · ${order.dayLabel}<br>
+      <strong>Pickup window:</strong> ${order.window}<br><br>
+      What would you like to do with this order?
+    </div>
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-success btn-sm" onclick="notifGrabs('${order.id}')">🤝 Mark as up for grabs</button>
+      <button class="btn btn-danger btn-sm"  onclick="notifHardCancel('${order.id}')">✗ Cancel the order</button>
+    </div>
+  </div>`;
+}
+
+function renderNotifGrabs(order) {
+  return `<div class="anim-in">
+    <div class="grab-banner">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Broadcast sent to #${order.office.toLowerCase().replace(/[^a-z]/g,'-')}-plate
+    </div>
+    <div class="slack-msg">
+      <strong>🤝 Up for grabs!</strong><br><br>
+      A <strong>${order.meal}</strong> is available on <strong>${order.dayLabel}</strong> at the ${order.office} kitchen.<br>
+      First come, first served. Reply here or grab it from the counter 🙌
+    </div>
+    <div style="font-size:12px;color:var(--text3)">Ops team will be notified once claimed or at end of pickup window.</div>
+  </div>`;
+}
+
+function notifConfirm(id) {
+  state.notifState[id] = 'confirmed';
+  renderNotifications();
+}
+
+function notifCancel(id) {
+  // Mark order as cancelled in storage, update UI
+  const orders = loadOrders();
+  const idx = orders.findIndex(o => o.id === id);
+  if (idx !== -1) { orders[idx].status = 'cancelled'; persistOrders(orders); }
+  state.notifState[id] = 'cancelled';
+  updateNotifBadge();
+  renderNotifications();
+}
+
+function notifGrabs(id) {
+  state.notifState[id] = 'grabs';
+  renderNotifications();
+}
+
+function notifHardCancel(id) {
+  // Already cancelled in storage; just re-render to show closed state
+  state.notifState[id] = 'done';
+  renderNotifications();
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ADMIN MENU VIEW
+// ─────────────────────────────────────────────────────────────────────────────
+
+function renderAdminMenuGrid() {
+  const ADMIN_OFFICE = 'Austin, TX';
+  const menu   = getFullMenu(ADMIN_OFFICE);
+  const grid   = document.getElementById('admin-menu-grid');
+
+  const weekKey = document.getElementById('admin-week-sel').value;
+  const WEEKS = {
+    jun2:  { tue: 'Jun 3',  wed: 'Jun 4',  thu: 'Jun 5',  liveDay: 'wed' },
+    jun9:  { tue: 'Jun 10', wed: 'Jun 11', thu: 'Jun 12', liveDay: null  },
+    jun16: { tue: 'Jun 17', wed: 'Jun 18', thu: 'Jun 19', liveDay: null  },
+  };
+  const week = WEEKS[weekKey];
+  const today = week.liveDay; // only the current live week gets the orange "live" badge
+
+  const DAY_META = {
+    tue: { label: `Tuesday ${week.tue}`,   key: 'tue' },
+    wed: { label: `Wednesday ${week.wed}`, key: 'wed' },
+    thu: { label: `Thursday ${week.thu}`,  key: 'thu' },
+  };
+
+  let html = '';
+  ['tue','wed','thu'].forEach(dayKey => {
+    const d   = menu[dayKey];
+    const meta = DAY_META[dayKey];
+    const isToday = dayKey === today;
+    html += `<div class="day-menu-card ${isToday ? 'today' : ''}">
+      <div class="dmc-title">
+        <span>${meta.label}${isToday ? ' · live' : ''}</span>
+      </div>
+      `;
+    if (!d || !d.items.length) {
+      html += `<div style="font-size:11px;color:var(--text3);padding:6px 0">No items yet</div>`;
+    } else {
+      d.items.forEach((item, idx) => {
+        const badge = item.dietary ? `<span class="badge ${dietaryBadgeClass(item.dietary)}" style="font-size:9px">${item.dietary}</span>` : '';
+        html += `<div class="dmc-item">
+          <span class="dmc-item-name">${item.name}</span>
+          <div class="dmc-item-actions">
+            ${badge}
+            <button class="btn btn-sm btn-icon" title="Remove" onclick="removeMenuItem('${dayKey}',${idx})" style="color:var(--text3);border-color:transparent;padding:3px 5px;font-size:12px">✕</button>
+          </div>
+        </div>`;
+      });
+    }
+    html += `</div>`;
+  });
+  grid.innerHTML = html;
+}
+
+function addMenuItem() {
+  const name    = document.getElementById('new-item-name').value.trim();
+  const dayKey  = document.getElementById('new-item-day').value;
+  const desc    = document.getElementById('new-item-desc').value.trim();
+  const dietary = document.getElementById('new-item-dietary').value;
+
+  if (!name) { showToast('Please enter an item name.', 'error'); return; }
+
+  const ADMIN_OFFICE = 'Austin, TX';
+  const menu = getFullMenu(ADMIN_OFFICE);
+  if (!menu[dayKey]) menu[dayKey] = { caterer: 'Culinary Co.', items: [] };
+  menu[dayKey].items.push({ name, desc, dietary });
+  saveStoredMenu(ADMIN_OFFICE, menu);
+  clearMenuForm();
+  renderAdminMenuGrid();
+  showToast(`"${name}" added to ${['Tuesday','Wednesday','Thursday'][['tue','wed','thu'].indexOf(dayKey)]}'s menu.`, 'success');
+}
+
+function removeMenuItem(dayKey, idx) {
+  const ADMIN_OFFICE = 'Austin, TX';
+  const menu = getFullMenu(ADMIN_OFFICE);
+  if (menu[dayKey] && menu[dayKey].items) {
+    menu[dayKey].items.splice(idx, 1);
+    saveStoredMenu(ADMIN_OFFICE, menu);
+    renderAdminMenuGrid();
+    showToast('Item removed.', 'success');
+  }
+}
+
+function clearMenuForm() {
+  document.getElementById('new-item-name').value    = '';
+  document.getElementById('new-item-desc').value    = '';
+  document.getElementById('new-item-dietary').value = '';
+}
+
+function renderOfficeStatusList() {
+  const list = document.getElementById('office-status-list');
+  const statusMap = { active: ['badge-green','Active'], pending: ['badge-amber','Menu pending'], none: ['badge-gray','No program'] };
+  list.innerHTML = OFFICE_STATUSES.map((o, i) => {
+    const [cls, lbl] = statusMap[o.status];
+    const isCurrentOffice = o.name === 'Austin, TX';
+    return `<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 10px;background:${isCurrentOffice ? 'var(--orange-light)' : 'var(--bg)'};border-radius:8px;border:${isCurrentOffice ? '1px solid var(--orange)' : '1px solid transparent'}">
+      <div>
+        <div style="font-size:12px;font-weight:${isCurrentOffice?'600':'500'};color:${isCurrentOffice?'var(--orange-dark)':'var(--text)'}">${o.name}</div>
+        <div style="font-size:10px;color:${isCurrentOffice?'var(--orange-mid)':'var(--text3)'}">${o.region}</div>
+      </div>
+      <span class="badge ${cls}">${lbl}</span>
+    </div>`;
+  }).join('');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// OPS VIEW
+// ─────────────────────────────────────────────────────────────────────────────
+
+const OPS_DATA = [
+  { office: 'Austin, TX',       region: 'Americas', orders: 47, confirmed: 43, cancelled: 3, grabs: 2  },
+  { office: 'Carpinteria, CA',  region: 'Americas', orders: 38, confirmed: 36, cancelled: 1, grabs: 1  },
+  { office: 'San Francisco, CA',region: 'Americas', orders: 52, confirmed: 49, cancelled: 2, grabs: 2  },
+  { office: 'Heredia, CR',      region: 'Americas', orders: 22, confirmed: 20, cancelled: 1, grabs: 0  },
+  { office: 'Tampa, FL',        region: 'Americas', orders: 22, confirmed: 22, cancelled: 0, grabs: 0  },
+  { office: 'London, UK',       region: 'EMEA',     orders: 41, confirmed: 38, cancelled: 3, grabs: 2  },
+  { office: 'Dublin, IR',       region: 'EMEA',     orders: 29, confirmed: 27, cancelled: 1, grabs: 1  },
+  { office: 'Cairo, EG',        region: 'EMEA',     orders: 18, confirmed: 17, cancelled: 1, grabs: 0  },
+  { office: 'Sydney, AU',       region: 'APAC',     orders: 33, confirmed: 31, cancelled: 2, grabs: 1  },
+  { office: 'Pune, IN',         region: 'APAC',     orders: 28, confirmed: 26, cancelled: 0, grabs: 0  },
+];
+
+function filterOpsTable() {
+  const regionF = document.getElementById('ops-region-filter').value;
+  const officeF = document.getElementById('ops-office-filter').value;
+
+  const filtered = OPS_DATA.filter(row => {
+    if (regionF && row.region !== regionF) return false;
+    if (officeF && row.office !== officeF) return false;
+    return true;
+  });
+
+  // Update table rows visibility
+  const rows = document.querySelectorAll('#ops-tbody tr');
+  rows.forEach(row => {
+    const rRegion = row.dataset.region;
+    const rOffice = row.dataset.office;
+    const match = (!regionF || rRegion === regionF) && (!officeF || rOffice === officeF);
+    row.classList.toggle('hidden-row', !match);
+  });
+
+  // Update stats
+  const totals = filtered.reduce((acc, r) => ({
+    orders:    acc.orders    + r.orders,
+    confirmed: acc.confirmed + r.confirmed,
+    cancelled: acc.cancelled + r.cancelled,
+    grabs:     acc.grabs     + r.grabs,
+  }), { orders: 0, confirmed: 0, cancelled: 0, grabs: 0 });
+
+  document.getElementById('ops-stat-total').textContent     = totals.orders.toLocaleString();
+  document.getElementById('ops-stat-confirmed').textContent = totals.confirmed.toLocaleString();
+  document.getElementById('ops-stat-cancelled').textContent = totals.cancelled.toLocaleString();
+  document.getElementById('ops-stat-grabs').textContent     = totals.grabs.toLocaleString();
+}
+
+function exportOpsCSV() {
+  const regionF = document.getElementById('ops-region-filter').value;
+  const officeF = document.getElementById('ops-office-filter').value;
+  const filtered = OPS_DATA.filter(r => (!regionF || r.region === regionF) && (!officeF || r.office === officeF));
+  const rows = [['Office','Region','Orders','Confirmed','Cancelled','Up for grabs']];
+  filtered.forEach(r => rows.push([r.office, r.region, r.orders, r.confirmed, r.cancelled, r.grabs]));
+  const csv = rows.map(r => r.join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = 'procore-plate-ops-jun4.csv';
+  a.click();
+  showToast('CSV exported.', 'success');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SAME-DAY ORDER
+// ─────────────────────────────────────────────────────────────────────────────
+
+const SAMEDAY_KEY = 'procore-plate-sameday-menu-v1';
+
+// Default preset menu — admins can override via localStorage
+const SAMEDAY_DEFAULT_MENUS = {
+  'Austin, TX': {
+    location: 'Thistle Restaurant (Building Amenity Area · Basement)',
+    hours: '10:00 AM – 2:00 PM',
+    items: [
+      { id: 'sd1', name: 'Classic Smash Burger',       desc: 'Beef patty, american cheese, shredded lettuce, special sauce, brioche bun', dietary: ''      },
+      { id: 'sd2', name: 'Crispy Chicken Sandwich',    desc: 'Pickle-brined chicken, jalapeño slaw, hot sauce, brioche bun',               dietary: ''      },
+      { id: 'sd3', name: 'Baja Fish Tacos (×2)',       desc: 'Crispy fish, avocado crema, cabbage, pico, corn tortillas',                  dietary: 'GF'    },
+      { id: 'sd4', name: 'Harvest Grain Bowl',         desc: 'Farro, roasted sweet potato, tahini dressing, pepitas, pickled onion',       dietary: 'Vegan' },
+      { id: 'sd5', name: 'Margherita Flatbread',       desc: 'House tomato sauce, fresh mozzarella, basil, olive oil drizzle',             dietary: 'Vegetarian' },
+    ],
+  },
+};
+
+function loadSamedayMenu(office) {
+  try {
+    const stored = JSON.parse(localStorage.getItem(SAMEDAY_KEY) || '{}');
+    return stored[office] || SAMEDAY_DEFAULT_MENUS[office] || null;
+  } catch { return SAMEDAY_DEFAULT_MENUS[office] || null; }
+}
+
+const samedayState = {
+  office: 'Austin, TX',
+  selectedItem: null,
+};
+
+function renderSamedayMenu() {
+  samedayState.office = document.getElementById('sameday-office-sel').value;
+  samedayState.selectedItem = null;
+
+  const menu = loadSamedayMenu(samedayState.office);
+  if (!menu) {
+    document.getElementById('sameday-menu-items').innerHTML =
+      `<div class="empty-state"><div class="empty-state-icon">🍽</div><div class="empty-state-title">No same-day menu set up yet</div><div class="empty-state-sub">Ask your local admin to configure today's menu.</div></div>`;
+    return;
+  }
+
+  document.getElementById('sameday-menu-sub').textContent =
+    `${samedayState.office} · ${menu.location} · ${menu.hours}`;
+
+  const itemsHtml = menu.items.map((item, idx) => {
+    const badge = item.dietary
+      ? `<span class="badge ${dietaryBadgeClass(item.dietary)}">${item.dietary}</span>`
+      : '';
+    return `<div class="menu-item" data-sd-idx="${idx}" onclick="pickSamedayItem(this)">
+      <div>
+        <div class="mi-name">${item.name}</div>
+        <div class="mi-desc">${item.desc}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">${badge}</div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('sameday-menu-items').innerHTML = itemsHtml;
+  renderSamedaySummary();
+}
+
+function pickSamedayItem(el) {
+  const idx  = parseInt(el.dataset.sdIdx);
+  const menu = loadSamedayMenu(samedayState.office);
+  samedayState.selectedItem = menu.items[idx];
+
+  document.querySelectorAll('#sameday-menu-items .menu-item').forEach((m, i) => {
+    m.classList.toggle('sel', i === idx);
+    const existing = m.querySelector('.mi-check');
+    if (existing) existing.remove();
+    if (i === idx) {
+      const chk = document.createElement('span');
+      chk.className = 'mi-check'; chk.textContent = '✓';
+      m.querySelector('div:last-child').appendChild(chk);
+    }
+  });
+
+  renderSamedaySummary();
+}
+
+function renderSamedaySummary() {
+  const item    = samedayState.selectedItem;
+  const menu    = loadSamedayMenu(samedayState.office);
+  const pickup  = getPickupTime();
+
+  document.getElementById('sameday-summary-content').innerHTML = `
+    <div class="sum-row"><span class="lbl">Office</span><span class="val">${samedayState.office}</span></div>
+    <div class="sum-row"><span class="lbl">Item</span><span class="val" style="${item ? '' : 'color:var(--text3);font-weight:400'}">${item ? item.name : 'Nothing selected'}</span></div>
+    <div class="sum-row"><span class="lbl">Pickup location</span><span class="val">${menu ? menu.location : '—'}</span></div>
+    <div class="sum-row"><span class="lbl">Ready by</span><span class="val" style="color:var(--orange);font-weight:600">${pickup}</span></div>`;
+
+  const btn = document.getElementById('sameday-confirm-btn');
+  btn.disabled      = !item;
+  btn.style.opacity = item ? '1' : '0.5';
+  btn.style.cursor  = item ? 'pointer' : 'not-allowed';
+}
+
+function getPickupTime() {
+  const now = new Date();
+  now.setMinutes(now.getMinutes() + 15);
+  return now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+}
+
+function generateOrderNum() {
+  const letters = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+  return letters[Math.floor(Math.random() * letters.length)] +
+         '-' + String(Math.floor(Math.random() * 900) + 100);
+}
+
+function confirmSamedayOrder() {
+  const item = samedayState.selectedItem;
+  if (!item) return;
+
+  const menu      = loadSamedayMenu(samedayState.office);
+  const orderNum  = generateOrderNum();
+  const now       = new Date();
+  const orderedAt = now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+  const pickupAt  = getPickupTime();
+
+  // Persist to localStorage
+  const samedayOrders = JSON.parse(localStorage.getItem('procore-plate-sameday-orders-v1') || '[]');
+  samedayOrders.push({
+    id: orderNum, office: samedayState.office, item: item.name,
+    itemDesc: item.desc, dietary: item.dietary,
+    orderedAt: now.toISOString(), pickupAt, location: menu.location,
+  });
+  localStorage.setItem('procore-plate-sameday-orders-v1', JSON.stringify(samedayOrders));
+
+  // Show pickup ticket
+  showPickupTicket({ orderNum, item, menu, orderedAt, pickupAt });
+}
+
+function showPickupTicket({ orderNum, item, menu, orderedAt, pickupAt }) {
+  const form   = document.getElementById('sameday-form');
+  const ticket = document.getElementById('sameday-ticket');
+
+  ticket.innerHTML = `
+    <div class="pickup-ticket anim-in">
+      <div class="ticket-order-num">Show this to the kitchen</div>
+      <div style="background:var(--orange-light);border:2px dashed var(--orange);border-radius:10px;padding:14px 20px;margin-bottom:20px;display:inline-block;width:100%">
+        <div style="font-size:11px;font-weight:700;letter-spacing:0.1em;color:var(--orange-dark);text-transform:uppercase;margin-bottom:4px">Confirmation #</div>
+        <div style="font-size:36px;font-weight:700;letter-spacing:2px;color:var(--orange);font-family:'DM Mono',monospace">${orderNum}</div>
+      </div>
+      <div class="ticket-item-name">${item.name}</div>
+      <div class="ticket-item-desc">${item.desc}</div>
+      <div class="ticket-status-badge" style="margin-top:12px"><span class="dot"></span> Being prepared</div>
+      <hr class="ticket-divider">
+      <div class="ticket-meta-grid">
+        <div class="ticket-meta-cell">
+          <div class="ticket-meta-label">Pickup location</div>
+          <div class="ticket-meta-value" style="font-size:12px;line-height:1.4">${menu.location}</div>
+        </div>
+        <div class="ticket-meta-cell">
+          <div class="ticket-meta-label">Ordered at</div>
+          <div class="ticket-meta-value">${orderedAt}</div>
+        </div>
+      </div>
+      <div class="ticket-meta-label" style="margin-bottom:6px">Ready by</div>
+      <div class="ticket-pickup-time">${pickupAt}</div>
+    </div>
+    <div class="card" style="text-align:center;padding:16px 24px">
+      <div style="font-size:13px;color:var(--text2);margin-bottom:12px">Head to Thistle Restaurant in the basement — show your confirmation # at the counter.</div>
+      <button class="btn btn-sm" onclick="resetSamedayOrder()">← Order something else</button>
+    </div>`;
+
+  // Swap form → ticket, update summary sidebar
+  form.style.display   = 'none';
+  ticket.style.display = 'block';
+
+  document.getElementById('sameday-summary-content').innerHTML = `
+    <div style="background:var(--orange-light);border-radius:8px;padding:10px 14px;text-align:center;margin-bottom:8px">
+      <div style="font-size:10px;font-weight:700;letter-spacing:0.1em;color:var(--orange-dark);text-transform:uppercase;margin-bottom:2px">Confirmation #</div>
+      <div style="font-size:24px;font-weight:700;letter-spacing:2px;color:var(--orange);font-family:'DM Mono',monospace">${orderNum}</div>
+    </div>
+    <div class="sum-row"><span class="lbl">Item</span><span class="val">${item.name}</span></div>
+    <div class="sum-row"><span class="lbl">Pickup</span><span class="val" style="font-size:11px">${menu.location}</span></div>
+    <div class="sum-row"><span class="lbl">Ready by</span><span class="val" style="color:var(--orange);font-weight:700">${pickupAt}</span></div>`;
+
+  const btn = document.getElementById('sameday-confirm-btn');
+  btn.textContent   = '✓ Order placed';
+  btn.disabled      = true;
+  btn.style.opacity = '0.6';
+  btn.style.cursor  = 'default';
+  btn.style.background = 'var(--green)';
+  btn.style.borderColor = 'var(--green)';
+}
+
+function resetSamedayOrder() {
+  samedayState.selectedItem = null;
+  document.getElementById('sameday-ticket').style.display = 'none';
+  document.getElementById('sameday-form').style.display   = 'block';
+
+  const btn = document.getElementById('sameday-confirm-btn');
+  btn.textContent   = 'Place order';
+  btn.disabled      = true;
+  btn.style.opacity = '0.5';
+  btn.style.cursor  = 'not-allowed';
+  btn.style.background = '';
+  btn.style.borderColor = '';
+
+  renderSamedayMenu();
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// NAVIGATION
+// ─────────────────────────────────────────────────────────────────────────────
+
+const pageTitles = {
+  order:   { title: 'My orders',        sub: 'Place and manage your meal selections'      },
+  sameday: { title: 'Same-day order',   sub: 'Order now · ready for pickup in ~15 min'   },
+  notif:   { title: 'Notifications',    sub: 'Day-of Slack reminders and cancellation flow' },
+  admin:   { title: 'Menu management',  sub: 'Austin, TX — manage your office menu'       },
+  ops:     { title: 'Operations',       sub: 'Global order dashboard — all offices'       },
+};
+
+function switchView(id, el) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  el.classList.add('active');
+  const t = pageTitles[id];
+  document.querySelector('.page-title').textContent = t.title;
+  document.querySelector('.page-sub').textContent   = t.sub;
+  // Lazy-render views when first opened
+  if (id === 'sameday') renderSamedayMenu();
+  if (id === 'notif')   renderNotifications();
+  if (id === 'admin')   { renderAdminMenuGrid(); renderOfficeStatusList(); }
+  if (id === 'ops')     filterOpsTable();
+}
+
+const officesByRegion = {
+  americas: ['Austin, TX','Carpinteria, CA','Edmonton, CA','Heredia, CR','New Orleans, LA','San Francisco, CA','Tampa, FL','Toronto, CA'],
+  emea:     ['Cairo, EG','Dubai, AE','Dublin, IR','London, UK','Stavanger, NO'],
+  apac:     ['Bangalore, IN','Pune, IN','Sydney, AU'],
+};
+
+function filterOffices() {
+  state.region = document.getElementById('region-sel').value;
+  const sel = document.getElementById('office-sel');
+  sel.innerHTML = '';
+  officesByRegion[state.region].forEach(o => {
+    const opt = document.createElement('option'); opt.textContent = o; sel.appendChild(opt);
+  });
+  onOfficeChange();
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TOAST
+// ─────────────────────────────────────────────────────────────────────────────
+
+function showToast(msg, type = 'success') {
+  const t = document.createElement('div');
+  t.className = `toast toast-${type}`;
+  t.style.animation = 'slideUp 0.2s ease';
+  const icon = type === 'success'
+    ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>'
+    : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>';
+  t.innerHTML = icon + msg;
+  document.body.appendChild(t);
+  setTimeout(() => { t.style.opacity = '0'; t.style.transition = 'opacity 0.3s'; }, 2700);
+  setTimeout(() => t.remove(), 3000);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────────────────────────────────────
+
+(function init() {
+  renderOrderHistory();
+  renderSummary();
+  updateDayBadges();
+  updateNotifBadge();
+  filterOpsTable(); // initialize stat counters
+})();
+</script>
+</body>
+</html>
