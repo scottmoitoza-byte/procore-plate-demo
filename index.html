@@ -483,7 +483,6 @@ tr.hidden-row { display: none; }
     <div id="order" class="view active">
       <div class="two-col">
         <div>
-          <div id="order-history-section"></div>
           <div class="card">
             <div class="card-title">Office location</div>
             <div class="card-sub" style="margin-bottom:14px">Auto-detected from your Procore profile — change if visiting another office</div>
@@ -1429,7 +1428,7 @@ function confirmOrder() {
   upsertOrders(newOrders);
   state.selectedDays = new Set(); state.selectedMeals = {}; state.editingDays = new Set();
   document.querySelectorAll('.day-btn').forEach(b => b.classList.remove('sel'));
-  renderMealCards(); renderSummary(); renderOrderHistory(); updateDayBadges(); updateNotifBadge();
+  renderMealCards(); renderSummary(); updateDayBadges(); updateNotifBadge();
   const n = newOrders.length;
   showToast(wasEditing ? `Order${n>1?'s':''} updated!` : `${n} order${n>1?'s':''} confirmed! You'll get a Slack reminder on the day.`, 'success');
 }
@@ -1440,7 +1439,7 @@ function cancelOrder(id) {
   if (idx === -1) return;
   orders[idx].status = 'cancelled';
   persistOrders(orders);
-  renderOrderHistory(); updateDayBadges(); updateNotifBadge();
+  updateDayBadges(); updateNotifBadge();
   showToast('Order cancelled. The ops team has been notified.', 'success');
 }
 
@@ -2481,6 +2480,9 @@ function renderStarDisplay(stars) {
 function renderHistory() {
   const orders  = loadOrders();
   const reviews = loadReviews();
+  const upcoming = orders
+    .filter(o => o.iso >= DEMO_TODAY && o.status === 'confirmed')
+    .sort((a, b) => a.iso.localeCompare(b.iso));
   const past = orders
     .filter(o => o.iso < DEMO_TODAY)
     .sort((a, b) => b.iso.localeCompare(a.iso));
@@ -2488,20 +2490,42 @@ function renderHistory() {
   const container = document.getElementById('history-content');
   if (!container) return;
 
-  if (!past.length) {
-    container.innerHTML = `
-      <div class="info-banner">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>
-        Your completed meals will show up here. Place an order and come back after lunch!
-      </div>
-      <div class="card">
-        <div class="empty-state">
-          <div class="empty-state-icon">📋</div>
-          <div class="empty-state-title">No order history yet</div>
-          <div class="empty-state-sub">Past and completed orders will appear here — you can rate meals and reorder favorites.</div>
-          <button class="btn btn-primary" onclick="switchView('order', document.querySelector('.nav-item'))">Place an order</button>
+  let html = '';
+
+  // ── Upcoming orders section ──
+  if (upcoming.length) {
+    html += `<div class="card" style="margin-bottom:16px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <div class="card-title" style="margin-bottom:0">Upcoming orders</div>
+        <span class="badge badge-green">${upcoming.length} confirmed</span>
+      </div>`;
+    upcoming.forEach(o => {
+      html += `<div class="order-history-item">
+        <div>
+          <div class="ohi-title">${o.dayLabel} · ${o.office}</div>
+          <div class="ohi-sub">${o.meal}</div>
+          <div class="ohi-meta">Pickup: ${o.pickup} · ${o.window}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+          <span class="badge badge-green">Confirmed</span>
+          <button class="btn btn-sm" onclick="editOrder('${o.id}');switchView('order',document.querySelector('.nav-item'))">Edit</button>
+          <button class="btn btn-sm btn-danger" onclick="cancelOrder('${o.id}');renderHistory()">Cancel</button>
         </div>
       </div>`;
+    });
+    html += `</div>`;
+  }
+
+  if (!past.length) {
+    if (!upcoming.length) {
+      html += `<div class="card"><div class="empty-state">
+        <div class="empty-state-icon">📋</div>
+        <div class="empty-state-title">No order history yet</div>
+        <div class="empty-state-sub">Past and completed orders will appear here — you can rate meals and reorder favorites.</div>
+        <button class="btn btn-primary" onclick="switchView('order', document.querySelector('.nav-item'))">Place an order</button>
+      </div></div>`;
+    }
+    container.innerHTML = html;
     return;
   }
 
@@ -2685,7 +2709,6 @@ function showToast(msg, type = 'success') {
 
 (function init() {
   seedDemoHistory();        // pre-load past-week demo orders so history isn't empty
-  renderOrderHistory();
   renderSummary();
   updateDayBadges();
   updateNotifBadge();
