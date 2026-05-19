@@ -892,53 +892,55 @@ const PLATE_DAYS = [
 const DEFAULT_MENUS = {
   'default': {
     tue: { caterer: 'Culinary Co.', items: [
-      { name: 'Teriyaki Chicken Bowl',     desc: 'Brown rice, edamame, teriyaki glaze, sesame seeds',      dietary: 'GF'    },
-      { name: 'Veggie Banh Mi',            desc: 'Pickled daikon, cucumber, sriracha mayo, baguette',      dietary: 'Vegan' },
-      { name: 'Turkey Club Wrap',          desc: 'Roasted turkey, bacon, lettuce, tomato, flour tortilla', dietary: ''      },
+      { name: 'Teriyaki Chicken Bowl',     desc: 'Brown rice, edamame, teriyaki glaze, sesame seeds',         dietary: 'GF',    restaurant: 'Culinary Co.'    },
+      { name: 'Veggie Banh Mi',            desc: 'Pickled daikon, cucumber, sriracha mayo, baguette',         dietary: 'Vegan', restaurant: 'Culinary Co.'    },
+      { name: 'Turkey Club Wrap',          desc: 'Roasted turkey, bacon, lettuce, tomato, flour tortilla',    dietary: '',      restaurant: 'Culinary Co.'    },
     ]},
-    wed: { caterer: 'Olive & Vine', items: [
-      { name: 'Grilled Salmon Bowl',       desc: 'Brown rice, edamame, cucumber, ginger dressing',         dietary: 'GF'    },
-      { name: 'Chicken Caesar Wrap',       desc: 'Romaine, parmesan, house dressing, flour tortilla',      dietary: ''      },
-      { name: 'Roasted Veggie Grain Bowl', desc: 'Quinoa, roasted peppers, tahini, fresh herbs',           dietary: 'Vegan' },
+    // Wednesday intentionally uses TWO restaurants to demonstrate split manifests
+    wed: { caterer: 'Olive & Vine · Farmhouse Kitchen', items: [
+      { name: 'Grilled Salmon Bowl',       desc: 'Brown rice, edamame, cucumber, ginger dressing',            dietary: 'GF',    restaurant: 'Olive & Vine'    },
+      { name: 'Chicken Caesar Wrap',       desc: 'Romaine, parmesan, house dressing, flour tortilla',         dietary: '',      restaurant: 'Olive & Vine'    },
+      { name: 'Roasted Veggie Grain Bowl', desc: 'Quinoa, roasted peppers, tahini, fresh herbs',              dietary: 'Vegan', restaurant: 'Farmhouse Kitchen'},
+      { name: 'Turkey & Brie Sandwich',    desc: 'Shaved turkey, brie, arugula, fig jam, sourdough',          dietary: '',      restaurant: 'Farmhouse Kitchen'},
     ]},
     thu: { caterer: 'Smokehouse Co.', items: [
-      { name: 'BBQ Brisket Plate',         desc: 'Slow-smoked brisket, coleslaw, cornbread',               dietary: ''      },
-      { name: 'Cauliflower Tacos',         desc: 'Roasted cauliflower, black beans, avocado, corn tortillas', dietary: 'Vegan' },
-      { name: 'Cobb Salad',               desc: 'Romaine, chicken, bacon, blue cheese, hardboiled egg',   dietary: 'GF'    },
+      { name: 'BBQ Brisket Plate',         desc: 'Slow-smoked brisket, coleslaw, cornbread',                  dietary: '',      restaurant: 'Smokehouse Co.'  },
+      { name: 'Cauliflower Tacos',         desc: 'Roasted cauliflower, black beans, avocado, corn tortillas', dietary: 'Vegan', restaurant: 'Smokehouse Co.'  },
+      { name: 'Cobb Salad',               desc: 'Romaine, chicken, bacon, blue cheese, hardboiled egg',       dietary: 'GF',    restaurant: 'Smokehouse Co.'  },
     ]},
   },
   'London, UK': {
     tue: { caterer: 'The Canteen', items: [
-      { name: 'Fish & Chips',             desc: 'Beer-battered cod, chunky chips, mushy peas',            dietary: ''           },
-      { name: 'Halloumi Wrap',            desc: 'Grilled halloumi, hummus, roasted veg, flatbread',       dietary: 'Vegetarian' },
-      { name: 'Chicken Tikka Bowl',       desc: 'Basmati rice, tikka masala, raita',                      dietary: 'GF'         },
+      { name: 'Fish & Chips',             desc: 'Beer-battered cod, chunky chips, mushy peas',               dietary: '',           restaurant: 'The Canteen' },
+      { name: 'Halloumi Wrap',            desc: 'Grilled halloumi, hummus, roasted veg, flatbread',          dietary: 'Vegetarian', restaurant: 'The Canteen' },
+      { name: 'Chicken Tikka Bowl',       desc: 'Basmati rice, tikka masala, raita',                         dietary: 'GF',         restaurant: 'The Canteen' },
     ]},
     wed: { caterer: 'The Canteen', items: [
-      { name: "Shepherd's Pie",           desc: 'Minced lamb, root vegetables, mashed potato topping',   dietary: ''           },
-      { name: 'Falafel Wrap',             desc: 'Fried falafel, tahini, pickled cabbage, flatbread',     dietary: 'Vegan'      },
-      { name: 'Caesar Salad',             desc: 'Cos lettuce, croutons, parmesan, house dressing',       dietary: 'Vegetarian' },
+      { name: "Shepherd's Pie",           desc: 'Minced lamb, root vegetables, mashed potato topping',      dietary: '',           restaurant: 'The Canteen' },
+      { name: 'Falafel Wrap',             desc: 'Fried falafel, tahini, pickled cabbage, flatbread',        dietary: 'Vegan',      restaurant: 'The Canteen' },
+      { name: 'Caesar Salad',             desc: 'Cos lettuce, croutons, parmesan, house dressing',          dietary: 'Vegetarian', restaurant: 'The Canteen' },
     ]},
     thu: { caterer: 'The Canteen', items: [
-      { name: 'Peri Peri Chicken',        desc: 'Flame-grilled chicken thighs, rice, piri piri sauce',  dietary: 'GF'         },
-      { name: 'Mushroom Risotto',         desc: 'Arborio rice, wild mushrooms, parmesan, truffle oil',  dietary: 'Vegetarian' },
-      { name: 'BLT Sandwich',             desc: 'Bacon, lettuce, tomato, mayo, sourdough',               dietary: ''           },
+      { name: 'Peri Peri Chicken',        desc: 'Flame-grilled chicken thighs, rice, piri piri sauce',  dietary: 'GF',         restaurant: 'The Canteen' },
+      { name: 'Mushroom Risotto',         desc: 'Arborio rice, wild mushrooms, parmesan, truffle oil',  dietary: 'Vegetarian', restaurant: 'The Canteen' },
+      { name: 'BLT Sandwich',             desc: 'Bacon, lettuce, tomato, mayo, sourdough',               dietary: '',           restaurant: 'The Canteen' },
     ]},
   },
   'San Francisco, CA': {
     tue: { caterer: 'Bay Kitchen', items: [
-      { name: 'Miso Glazed Salmon',       desc: 'Soba noodles, edamame, pickled ginger',                 dietary: 'GF'    },
-      { name: 'Sourdough BLT',            desc: 'Heirloom tomato, bacon, aioli, local sourdough',        dietary: ''      },
-      { name: 'Mission Burrito Bowl',     desc: 'Black beans, cilantro rice, pico de gallo, guacamole', dietary: 'Vegan' },
+      { name: 'Miso Glazed Salmon',       desc: 'Soba noodles, edamame, pickled ginger',                  dietary: 'GF',    restaurant: 'Bay Kitchen' },
+      { name: 'Sourdough BLT',            desc: 'Heirloom tomato, bacon, aioli, local sourdough',         dietary: '',      restaurant: 'Bay Kitchen' },
+      { name: 'Mission Burrito Bowl',     desc: 'Black beans, cilantro rice, pico de gallo, guacamole',  dietary: 'Vegan', restaurant: 'Bay Kitchen' },
     ]},
     wed: { caterer: 'Bay Kitchen', items: [
-      { name: 'Dungeness Crab Roll',      desc: 'Fresh crab, avocado, cucumber, ponzu',                  dietary: 'GF'    },
-      { name: 'Veggie Banh Mi',           desc: 'Pickled daikon, cucumber, sriracha mayo, baguette',     dietary: 'Vegan' },
-      { name: 'Chicken Pesto Wrap',       desc: 'Grilled chicken, basil pesto, arugula, tomato',         dietary: ''      },
+      { name: 'Dungeness Crab Roll',      desc: 'Fresh crab, avocado, cucumber, ponzu',                   dietary: 'GF',    restaurant: 'Bay Kitchen' },
+      { name: 'Veggie Banh Mi',           desc: 'Pickled daikon, cucumber, sriracha mayo, baguette',      dietary: 'Vegan', restaurant: 'Bay Kitchen' },
+      { name: 'Chicken Pesto Wrap',       desc: 'Grilled chicken, basil pesto, arugula, tomato',          dietary: '',      restaurant: 'Bay Kitchen' },
     ]},
     thu: { caterer: 'Bay Kitchen', items: [
-      { name: 'Korean BBQ Bowl',          desc: 'Bulgogi beef, kimchi fried rice, sesame spinach',        dietary: 'GF'    },
-      { name: 'Mushroom Tacos',           desc: 'Portobello, chipotle crema, cabbage slaw, corn tortillas', dietary: 'Vegan' },
-      { name: 'Club Sandwich',            desc: 'Turkey, swiss, bacon, tomato, avocado, toasted bread',  dietary: ''      },
+      { name: 'Korean BBQ Bowl',          desc: 'Bulgogi beef, kimchi fried rice, sesame spinach',         dietary: 'GF',    restaurant: 'Bay Kitchen' },
+      { name: 'Mushroom Tacos',           desc: 'Portobello, chipotle crema, cabbage slaw, corn tortillas',dietary: 'Vegan', restaurant: 'Bay Kitchen' },
+      { name: 'Club Sandwich',            desc: 'Turkey, swiss, bacon, tomato, avocado, toasted bread',   dietary: '',      restaurant: 'Bay Kitchen' },
     ]},
   },
 };
@@ -1286,17 +1288,39 @@ function renderMealCards() {
   activeDays.forEach(day => {
     const menu = getMenu(state.office, day.key);
     const sel  = state.selectedMeals[day.key];
+
+    // Group items by restaurant
+    const byRestaurant = {};
+    menu.items.forEach((item, idx) => {
+      const r = item.restaurant || menu.caterer || 'Kitchen';
+      if (!byRestaurant[r]) byRestaurant[r] = [];
+      byRestaurant[r].push({ ...item, _idx: idx });
+    });
+
+    const multiRestaurant = Object.keys(byRestaurant).length > 1;
+
     html += `<div class="card anim-in">
       <div class="card-title">${day.fullLabel} — choose your meal</div>
-      <div class="card-sub" style="margin-bottom:16px">${state.office} · Catered by ${menu.caterer}</div>`;
-    menu.items.forEach((item, idx) => {
-      const isSel  = sel && sel.name === item.name;
-      const badge  = item.dietary ? `<span class="badge ${dietaryBadgeClass(item.dietary)}">${item.dietary}</span>` : '';
-      html += `<div class="menu-item ${isSel?'sel':''}" data-day="${day.key}" data-idx="${idx}" onclick="pickMeal(this)">
-        <div><div class="mi-name">${item.name}</div><div class="mi-desc">${item.desc}</div></div>
-        <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">${badge}${isSel?'<span class="mi-check">✓</span>':''}</div>
-      </div>`;
+      <div class="card-sub" style="margin-bottom:16px">${state.office} · ${menu.caterer}</div>`;
+
+    Object.entries(byRestaurant).forEach(([restaurantName, items]) => {
+      if (multiRestaurant) {
+        html += `<div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.07em;margin:12px 0 6px;display:flex;align-items:center;gap:8px">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l19-9-9 19-2-8-8-2z"/></svg>
+          ${restaurantName}
+        </div>`;
+      }
+      items.forEach(item => {
+        const isSel = sel && sel.name === item.name;
+        const badge = item.dietary ? `<span class="badge ${dietaryBadgeClass(item.dietary)}">${item.dietary}</span>` : '';
+        const restBadge = multiRestaurant ? '' : `<span style="font-size:10px;color:var(--text3);margin-right:4px">${item.restaurant || ''}</span>`;
+        html += `<div class="menu-item ${isSel?'sel':''}" data-day="${day.key}" data-idx="${item._idx}" onclick="pickMeal(this)">
+          <div><div class="mi-name">${item.name}</div><div class="mi-desc">${item.desc}</div></div>
+          <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">${badge}${isSel?'<span class="mi-check">✓</span>':''}</div>
+        </div>`;
+      });
     });
+
     html += `</div>`;
   });
   area.innerHTML = html;
@@ -1454,7 +1478,9 @@ function confirmOrder() {
     id: `${day.iso}-${state.office.replace(/[^a-z]/gi,'')}-${Date.now()}-${Math.random().toString(36).slice(2,5)}`,
     office: state.office, region: state.region, iso: day.iso, dayLabel: day.fullLabel,
     meal: state.selectedMeals[day.key].name, mealDesc: state.selectedMeals[day.key].desc,
-    dietary: state.selectedMeals[day.key].dietary, status: 'confirmed',
+    dietary: state.selectedMeals[day.key].dietary,
+    restaurant: state.selectedMeals[day.key].restaurant || '',
+    status: 'confirmed',
     orderedAt: new Date().toISOString(), pickup: 'Kitchen, 2nd floor', window: '12:00–1:00 PM',
   }));
   const wasEditing = state.editingDays.size > 0;
@@ -2083,23 +2109,23 @@ const OPS_DETAIL = {
       { emp:'Rachel Park',     meal:'Veggie Banh Mi',            dietary:'Vegan', status:'confirmed', time:'11:01 AM'},
       { emp:'Ben Nguyen',      meal:'Teriyaki Chicken Bowl',     dietary:'GF',    status:'cancelled', time:'8:59 AM'},
     ]},
-    wed: { date: 'Wednesday, Jun 4, 2025', caterer: 'Olive & Vine', orders: [
-      { emp:'Alex Kim',        meal:'Grilled Salmon Bowl',       dietary:'GF',    status:'confirmed', time:'8:03 AM'},
-      { emp:'Maria Santos',    meal:'Chicken Caesar Wrap',       dietary:'',      status:'confirmed', time:'8:17 AM'},
-      { emp:'Tyler Brooks',    meal:'Grilled Salmon Bowl',       dietary:'GF',    status:'confirmed', time:'8:29 AM'},
-      { emp:'Priya Patel',     meal:'Roasted Veggie Grain Bowl', dietary:'Vegan', status:'confirmed', time:'8:38 AM'},
-      { emp:'Sam Rivera',      meal:'Chicken Caesar Wrap',       dietary:'',      status:'grabs',     time:'8:52 AM'},
-      { emp:'Chris Wong',      meal:'Grilled Salmon Bowl',       dietary:'GF',    status:'confirmed', time:'9:04 AM'},
-      { emp:'Dana Lee',        meal:'Roasted Veggie Grain Bowl', dietary:'Vegan', status:'confirmed', time:'9:16 AM'},
-      { emp:'Marcus Johnson',  meal:'Chicken Caesar Wrap',       dietary:'',      status:'confirmed', time:'9:27 AM'},
-      { emp:'Emma Clarke',     meal:'Grilled Salmon Bowl',       dietary:'GF',    status:'confirmed', time:'9:41 AM'},
-      { emp:'Jake Torres',     meal:'Chicken Caesar Wrap',       dietary:'',      status:'confirmed', time:'9:55 AM'},
-      { emp:'Lily Chen',       meal:'Roasted Veggie Grain Bowl', dietary:'Vegan', status:'confirmed', time:'10:08 AM'},
-      { emp:'Noah Williams',   meal:'Grilled Salmon Bowl',       dietary:'GF',    status:'confirmed', time:'10:19 AM'},
-      { emp:'Sofia Garcia',    meal:'Chicken Caesar Wrap',       dietary:'',      status:'confirmed', time:'10:33 AM'},
-      { emp:'Ethan Moore',     meal:'Grilled Salmon Bowl',       dietary:'GF',    status:'confirmed', time:'10:48 AM'},
-      { emp:'Rachel Park',     meal:'Roasted Veggie Grain Bowl', dietary:'Vegan', status:'confirmed', time:'11:02 AM'},
-      { emp:'Zoe Anderson',    meal:'Chicken Caesar Wrap',       dietary:'',      status:'cancelled', time:'9:10 AM'},
+    wed: { date: 'Wednesday, Jun 4, 2025', caterer: 'Olive & Vine · Farmhouse Kitchen', orders: [
+      { emp:'Alex Kim',        meal:'Grilled Salmon Bowl',       dietary:'GF',    restaurant:'Olive & Vine',       status:'confirmed', time:'8:03 AM'},
+      { emp:'Maria Santos',    meal:'Chicken Caesar Wrap',       dietary:'',      restaurant:'Olive & Vine',       status:'confirmed', time:'8:17 AM'},
+      { emp:'Tyler Brooks',    meal:'Turkey & Brie Sandwich',    dietary:'',      restaurant:'Farmhouse Kitchen',  status:'confirmed', time:'8:29 AM'},
+      { emp:'Priya Patel',     meal:'Roasted Veggie Grain Bowl', dietary:'Vegan', restaurant:'Farmhouse Kitchen',  status:'confirmed', time:'8:38 AM'},
+      { emp:'Sam Rivera',      meal:'Chicken Caesar Wrap',       dietary:'',      restaurant:'Olive & Vine',       status:'grabs',     time:'8:52 AM'},
+      { emp:'Chris Wong',      meal:'Grilled Salmon Bowl',       dietary:'GF',    restaurant:'Olive & Vine',       status:'confirmed', time:'9:04 AM'},
+      { emp:'Dana Lee',        meal:'Roasted Veggie Grain Bowl', dietary:'Vegan', restaurant:'Farmhouse Kitchen',  status:'confirmed', time:'9:16 AM'},
+      { emp:'Marcus Johnson',  meal:'Chicken Caesar Wrap',       dietary:'',      restaurant:'Olive & Vine',       status:'confirmed', time:'9:27 AM'},
+      { emp:'Emma Clarke',     meal:'Grilled Salmon Bowl',       dietary:'GF',    restaurant:'Olive & Vine',       status:'confirmed', time:'9:41 AM'},
+      { emp:'Jake Torres',     meal:'Turkey & Brie Sandwich',    dietary:'',      restaurant:'Farmhouse Kitchen',  status:'confirmed', time:'9:55 AM'},
+      { emp:'Lily Chen',       meal:'Roasted Veggie Grain Bowl', dietary:'Vegan', restaurant:'Farmhouse Kitchen',  status:'confirmed', time:'10:08 AM'},
+      { emp:'Noah Williams',   meal:'Grilled Salmon Bowl',       dietary:'GF',    restaurant:'Olive & Vine',       status:'confirmed', time:'10:19 AM'},
+      { emp:'Sofia Garcia',    meal:'Turkey & Brie Sandwich',    dietary:'',      restaurant:'Farmhouse Kitchen',  status:'confirmed', time:'10:33 AM'},
+      { emp:'Ethan Moore',     meal:'Grilled Salmon Bowl',       dietary:'GF',    restaurant:'Olive & Vine',       status:'confirmed', time:'10:48 AM'},
+      { emp:'Rachel Park',     meal:'Roasted Veggie Grain Bowl', dietary:'Vegan', restaurant:'Farmhouse Kitchen',  status:'confirmed', time:'11:02 AM'},
+      { emp:'Zoe Anderson',    meal:'Chicken Caesar Wrap',       dietary:'',      restaurant:'Olive & Vine',       status:'cancelled', time:'9:10 AM'},
     ]},
     thu: { date: 'Thursday, Jun 5, 2025', caterer: 'Smokehouse Co.', orders: [
       { emp:'Alex Kim',        meal:'Cobb Salad',                dietary:'GF',    status:'confirmed', time:'8:11 AM'},
@@ -2251,16 +2277,40 @@ function renderOfficeDetailRow(anchorRow, office, activeDay) {
     return '';
   };
 
-  const rows = detail.orders.map((o, i) =>
-    `<tr>
-      <td style="font-size:12px;padding:8px 12px!important">${i+1}</td>
-      <td style="font-weight:500;font-size:12px;padding:8px 12px!important">${o.emp}</td>
-      <td style="font-size:12px;padding:8px 12px!important">${o.meal}</td>
-      <td style="font-size:12px;padding:8px 12px!important">${o.dietary ? `<span class="badge ${dietaryBadgeClass(o.dietary)}">${o.dietary}</span>` : '<span style="color:var(--text3)">—</span>'}</td>
-      <td style="font-size:12px;padding:8px 12px!important">${statusBadge(o.status)}</td>
-      <td style="font-size:12px;padding:8px 12px!important;color:var(--text3)">${o.time}</td>
-    </tr>`
-  ).join('');
+  // Group by restaurant if multiple present
+  const restaurants = [...new Set(detail.orders.map(o => o.restaurant || detail.caterer || 'Kitchen'))];
+  const multiRest   = restaurants.length > 1;
+
+  let rows = '';
+  if (multiRest) {
+    restaurants.forEach(rest => {
+      const restOrders = detail.orders.filter(o => (o.restaurant || detail.caterer) === rest);
+      rows += `<tr><td colspan="6" style="background:var(--bg);padding:6px 12px!important;font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.07em;border-bottom:1px solid var(--border)">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:5px;vertical-align:middle"><path d="M3 11l19-9-9 19-2-8-8-2z"/></svg>${rest} — ${restOrders.filter(o=>o.status==='confirmed').length} confirmed
+      </td></tr>`;
+      restOrders.forEach((o, i) => {
+        rows += `<tr>
+          <td style="font-size:12px;padding:8px 12px!important">${i+1}</td>
+          <td style="font-weight:500;font-size:12px;padding:8px 12px!important">${o.emp}</td>
+          <td style="font-size:12px;padding:8px 12px!important">${o.meal}</td>
+          <td style="font-size:12px;padding:8px 12px!important">${o.dietary ? `<span class="badge ${dietaryBadgeClass(o.dietary)}">${o.dietary}</span>` : '<span style="color:var(--text3)">—</span>'}</td>
+          <td style="font-size:12px;padding:8px 12px!important">${statusBadge(o.status)}</td>
+          <td style="font-size:12px;padding:8px 12px!important;color:var(--text3)">${o.time}</td>
+        </tr>`;
+      });
+    });
+  } else {
+    rows = detail.orders.map((o, i) =>
+      `<tr>
+        <td style="font-size:12px;padding:8px 12px!important">${i+1}</td>
+        <td style="font-weight:500;font-size:12px;padding:8px 12px!important">${o.emp}</td>
+        <td style="font-size:12px;padding:8px 12px!important">${o.meal}</td>
+        <td style="font-size:12px;padding:8px 12px!important">${o.dietary ? `<span class="badge ${dietaryBadgeClass(o.dietary)}">${o.dietary}</span>` : '<span style="color:var(--text3)">—</span>'}</td>
+        <td style="font-size:12px;padding:8px 12px!important">${statusBadge(o.status)}</td>
+        <td style="font-size:12px;padding:8px 12px!important;color:var(--text3)">${o.time}</td>
+      </tr>`
+    ).join('');
+  }
 
   const confirmedCount = detail.orders.filter(o => o.status === 'confirmed').length;
   const cancelledCount = detail.orders.filter(o => o.status === 'cancelled').length;
@@ -2315,11 +2365,20 @@ function switchDetailDay(office, dayKey) {
 // MANIFEST GENERATION & MODAL
 // ─────────────────────────────────────────────────────────────────────────────
 
-function buildManifestText(office, dayKey) {
-  const detail = getOfficeDetail(office, dayKey);
-  const confirmed = detail.orders.filter(o => o.status === 'confirmed');
+// Returns unique restaurant names for a given office+day detail
+function getRestaurantsForDay(detail) {
+  const seen = new Set();
+  detail.orders.forEach(o => { if (o.restaurant) seen.add(o.restaurant); });
+  if (!seen.size) seen.add(detail.caterer || 'Kitchen');
+  return [...seen];
+}
 
-  // Meal summary (counts)
+// Build manifest text for ONE restaurant (or all if restaurantFilter is null)
+function buildManifestText(office, dayKey, restaurantFilter, includeNames) {
+  const detail    = getOfficeDetail(office, dayKey);
+  let confirmed   = detail.orders.filter(o => o.status === 'confirmed');
+  if (restaurantFilter) confirmed = confirmed.filter(o => (o.restaurant || detail.caterer) === restaurantFilter);
+
   const mealCounts = {};
   confirmed.forEach(o => {
     const k = o.meal + (o.dietary ? ` (${o.dietary})` : '');
@@ -2327,86 +2386,188 @@ function buildManifestText(office, dayKey) {
   });
 
   const summaryLines = Object.entries(mealCounts)
-    .sort((a,b) => b[1] - a[1])
+    .sort((a, b) => b[1] - a[1])
     .map(([meal, qty]) => `  ${String(qty).padStart(2,' ')}  ${meal}`)
     .join('\n');
 
-  const individualLines = confirmed
-    .map((o, i) => {
-      const num = String(i+1).padStart(2,' ');
-      const name = o.emp.padEnd(20,' ');
-      const meal = o.meal.padEnd(28,' ');
-      const diet = o.dietary || '—';
-      return `  ${num}. ${name} ${meal} ${diet}`;
-    }).join('\n');
+  const restaurantLabel = restaurantFilter || detail.caterer || 'Kitchen';
 
-  return `PROCORE PLATE — KITCHEN MANIFEST
+  let text = `PROCORE PLATE — KITCHEN MANIFEST
 ${'─'.repeat(52)}
+Restaurant:   ${restaurantLabel}
 Office:       ${office}
 Date:         ${detail.date}
-Catered by:   ${detail.caterer}
 Pickup window: 12:00 – 1:00 PM
 Generated:    ${new Date().toLocaleString()}
 ${'─'.repeat(52)}
 
 MEAL SUMMARY (${confirmed.length} confirmed orders)
-${summaryLines}
+${summaryLines}`;
 
-${'─'.repeat(52)}
+  if (includeNames && confirmed.length) {
+    const individualLines = confirmed.map((o, i) => {
+      const num  = String(i + 1).padStart(2, ' ');
+      const name = o.emp.padEnd(22, ' ');
+      const meal = o.meal.padEnd(26, ' ');
+      const diet = o.dietary || '—';
+      return `  ${num}. ${name} ${meal} ${diet}`;
+    }).join('\n');
+    text += `\n\n${'─'.repeat(52)}
 INDIVIDUAL ORDERS
-  ##  Employee             Meal                         Dietary
-${individualLines}
-${'─'.repeat(52)}
-END OF MANIFEST — Please prepare by 11:45 AM`;
+  ##  Employee               Meal                       Dietary
+${individualLines}`;
+  }
+
+  text += `\n${'─'.repeat(52)}\nEND OF MANIFEST — Please prepare by 11:45 AM`;
+  return text;
 }
 
-function downloadManifestCSV(office, dayKey) {
+function downloadManifestCSV(office, dayKey, restaurantFilter) {
   const detail = getOfficeDetail(office, dayKey);
-  const rows = [['#','Employee','Meal','Dietary','Status','Ordered at']];
-  detail.orders.forEach((o,i) => rows.push([i+1, o.emp, o.meal, o.dietary||'', o.status, o.time]));
+  let orders   = detail.orders;
+  if (restaurantFilter) orders = orders.filter(o => (o.restaurant || detail.caterer) === restaurantFilter);
+  const rows = [['#','Employee','Meal','Dietary','Restaurant','Status','Ordered at']];
+  orders.forEach((o, i) => rows.push([i+1, o.emp, o.meal, o.dietary||'', o.restaurant||detail.caterer||'', o.status, o.time]));
   const csv = rows.map(r => r.map(v => `"${v}"`).join(',')).join('\n');
   const a = document.createElement('a');
+  const slug = (restaurantFilter || office).replace(/[^a-z]/gi, '-').toLowerCase();
   a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
-  a.download = `procore-plate-manifest-${office.replace(/[^a-z]/gi,'-').toLowerCase()}-${dayKey}.csv`;
+  a.download = `procore-plate-manifest-${slug}-${dayKey}.csv`;
   a.click();
   showToast('Manifest downloaded.', 'success');
 }
 
+// State for manifest modal
+let _manifestState = { office: '', dayKey: '', restaurant: null, includeNames: false, isSend: false };
+
 function openManifestModal(office, dayKey, isSend = false) {
-  const manifest = buildManifestText(office, dayKey);
-  const detail   = getOfficeDetail(office, dayKey);
-  const dayLabels = { tue:'Tuesday Jun 3', wed:'Wednesday Jun 4', thu:'Thursday Jun 5' };
-
-  const content = document.getElementById('manifest-modal-content');
-  content.innerHTML = `
-    <div style="margin-bottom:18px">
-      <div style="font-size:16px;font-weight:600;margin-bottom:4px">${isSend ? 'Send manifest to restaurant' : 'Kitchen manifest preview'}</div>
-      <div style="font-size:12px;color:var(--text2)">${office} · ${dayLabels[dayKey] || dayKey} · ${detail.caterer}</div>
-    </div>
-    ${isSend ? `<div style="background:var(--blue-bg);border:1px solid #B5D4F5;border-radius:8px;padding:12px 14px;font-size:12px;color:var(--blue);margin-bottom:14px;display:flex;align-items:center;gap:8px">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-      Will be sent to <strong>kitchen@${office.toLowerCase().replace(/[^a-z]/g,'-')}.procore.com</strong> — confirm below
-    </div>` : ''}
-    <div class="manifest-preview">${manifest}</div>
-    <div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap">
-      ${isSend ? `
-        <button class="btn btn-primary" onclick="confirmSendManifest('${office}','${dayKey}')">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-          Confirm send
-        </button>` : ''}
-      <button class="btn" onclick="downloadManifestCSV('${office}','${dayKey}');closeManifestModal()">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        Download CSV
-      </button>
-      <button class="btn" onclick="closeManifestModal()">Close</button>
-    </div>`;
-
+  const detail      = getOfficeDetail(office, dayKey);
+  const restaurants = getRestaurantsForDay(detail);
+  _manifestState    = { office, dayKey, restaurant: restaurants[0], includeNames: false, isSend };
+  renderManifestModal();
   document.getElementById('manifest-modal').style.display = 'flex';
 }
 
-function confirmSendManifest(office, dayKey) {
+function renderManifestModal() {
+  const { office, dayKey, restaurant, includeNames, isSend } = _manifestState;
+  const detail      = getOfficeDetail(office, dayKey);
+  const restaurants = getRestaurantsForDay(detail);
+  const dayLabels   = { tue:'Tuesday Jun 3', wed:'Wednesday Jun 4', thu:'Thursday Jun 5' };
+  const manifest    = buildManifestText(office, dayKey, restaurant, includeNames);
+  const multiRest   = restaurants.length > 1;
+
+  const restTabs = restaurants.map(r =>
+    `<div class="day-tab ${r === restaurant ? 'active' : ''}" onclick="switchManifestRestaurant('${r}')">${r}</div>`
+  ).join('');
+
+  const content = document.getElementById('manifest-modal-content');
+  content.innerHTML = `
+    <div style="margin-bottom:16px">
+      <div style="font-size:16px;font-weight:600;margin-bottom:4px">${isSend ? 'Send manifest to restaurant' : 'Kitchen manifest'}</div>
+      <div style="font-size:12px;color:var(--text2)">${office} · ${dayLabels[dayKey] || dayKey}</div>
+    </div>
+    ${multiRest ? `<div style="margin-bottom:12px">
+      <div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:6px">Select restaurant</div>
+      <div class="day-tab-bar">${restTabs}</div>
+    </div>` : ''}
+    ${isSend ? `<div style="background:var(--blue-bg);border:1px solid #B5D4F5;border-radius:8px;padding:10px 14px;font-size:12px;color:var(--blue);margin-bottom:12px;display:flex;align-items:center;gap:8px">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      Sending to <strong>${restaurant}</strong> · kitchen@${(restaurant||office).toLowerCase().replace(/[^a-z]/g,'-')}.procore.com
+    </div>` : ''}
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+      <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer">
+        <input type="checkbox" id="include-names-chk" ${includeNames?'checked':''} onchange="toggleManifestNames()" style="width:14px;height:14px;accent-color:var(--orange)">
+        Include employee names
+      </label>
+    </div>
+    <div class="manifest-preview" id="manifest-text-preview">${manifest}</div>
+    <div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap">
+      ${isSend ? `<button class="btn btn-primary" onclick="confirmSendManifest()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        Confirm send
+      </button>` : ''}
+      <button class="btn" onclick="downloadManifestCSV('${office}','${dayKey}','${restaurant||''}');closeManifestModal()">⬇ Download CSV</button>
+      <button class="btn" onclick="openLabelGenerator('${office}','${dayKey}','${restaurant||''}')">🏷 Print labels</button>
+      <button class="btn" onclick="closeManifestModal()">Close</button>
+    </div>`;
+}
+
+function switchManifestRestaurant(restaurant) {
+  _manifestState.restaurant = restaurant;
+  renderManifestModal();
+}
+
+function toggleManifestNames() {
+  _manifestState.includeNames = document.getElementById('include-names-chk').checked;
+  const preview = document.getElementById('manifest-text-preview');
+  if (preview) preview.textContent = buildManifestText(
+    _manifestState.office, _manifestState.dayKey,
+    _manifestState.restaurant, _manifestState.includeNames
+  );
+}
+
+// ─── LABEL GENERATOR ────────────────────────────────────────────────────────
+
+function openLabelGenerator(office, dayKey, restaurantFilter) {
+  const detail    = getOfficeDetail(office, dayKey);
+  let confirmed   = detail.orders.filter(o => o.status === 'confirmed');
+  if (restaurantFilter) confirmed = confirmed.filter(o => (o.restaurant || detail.caterer) === restaurantFilter);
+
+  const restaurantName = restaurantFilter || detail.caterer || 'Kitchen';
+  const dateStr        = detail.date;
+  const dayLabels      = { tue:'Tue Jun 3', wed:'Wed Jun 4', thu:'Thu Jun 5' };
+  const dayShort       = dayLabels[dayKey] || dayKey;
+
+  // Build printable label HTML (Avery 5160 — 3 cols × 10 rows, 30 labels/sheet)
+  const labelCells = confirmed.map(o => `
+    <div class="label-cell">
+      <div class="label-header">PROCORE PLATE</div>
+      <div class="label-name">${o.emp}</div>
+      <div class="label-divider"></div>
+      <div class="label-meal">${o.meal}</div>
+      <div class="label-meta">
+        ${o.dietary ? `<span class="label-dietary">${o.dietary}</span>` : ''}
+        <span>${dayShort} · ${office}</span>
+      </div>
+      <div class="label-rest">${restaurantName}</div>
+    </div>`).join('');
+
+  const labelHtml = `<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><title>Procore Plate Labels — ${restaurantName}</title>
+<style>
+  @page { size: letter; margin: 0.5in 0.18in; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Arial, sans-serif; background: white; }
+  .label-sheet { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.1in 0.12in; }
+  .label-cell { border: 1px solid #ccc; border-radius: 4px; padding: 6px 8px; height: 1in; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between; }
+  .label-header { font-size: 7px; font-weight: 700; color: #D85A30; letter-spacing: 0.08em; text-transform: uppercase; }
+  .label-name { font-size: 13px; font-weight: 700; color: #1A1916; line-height: 1.2; margin-top: 2px; }
+  .label-divider { border-top: 1px solid #eee; margin: 3px 0; }
+  .label-meal { font-size: 10px; font-weight: 600; color: #333; line-height: 1.3; }
+  .label-meta { display: flex; align-items: center; gap: 5px; font-size: 8px; color: #666; margin-top: 2px; }
+  .label-dietary { background: #EAF3DE; color: #3B6D11; font-weight: 700; padding: 1px 4px; border-radius: 3px; }
+  .label-rest { font-size: 7.5px; color: #999; }
+  @media screen { body { background: #f0f0f0; padding: 20px; } .label-sheet { max-width: 8.5in; margin: 0 auto; background: white; padding: 0.5in 0.18in; } }
+</style>
+</head><body>
+<div class="label-sheet">${labelCells}</div>
+<script>window.onload = function(){ window.print(); }<\/script>
+</body></html>`;
+
+  const win = window.open('', '_blank');
+  if (win) {
+    win.document.write(labelHtml);
+    win.document.close();
+  } else {
+    showToast('Allow pop-ups to open the label sheet.', 'error');
+  }
   closeManifestModal();
-  showToast(`Manifest sent to ${office} kitchen team! ✓`, 'success');
+}
+
+function confirmSendManifest() {
+  const { office, restaurant } = _manifestState;
+  closeManifestModal();
+  showToast(`Manifest sent to ${restaurant || office} kitchen team! ✓`, 'success');
 }
 
 function closeManifestModal() {
