@@ -155,6 +155,33 @@ select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.o
 .send-schedule-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
 .schedule-status { font-size: 11px; color: var(--text2); background: var(--bg); border: 1px solid var(--border); border-radius: 20px; padding: 3px 10px; }
 
+/* ── Enterprise restaurant groups in admin menu ── */
+.rest-group { margin-bottom: 10px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.rest-group-header { display: flex; align-items: center; justify-content: space-between; padding: 7px 8px 7px 11px; background: var(--surface2); border-bottom: 1px solid var(--border); gap: 8px; }
+.rest-group-name { font-size: 12px; font-weight: 600; color: var(--text); display: flex; align-items: center; gap: 6px; flex: 1; min-width: 0; }
+.rest-group-name-icon { font-size: 13px; flex-shrink: 0; }
+.rest-group-name-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rest-group-count { font-size: 10px; color: var(--text3); font-weight: 400; flex-shrink: 0; }
+.rest-group-actions { display: flex; gap: 3px; flex-shrink: 0; }
+.rest-group-items { padding: 2px 4px 2px; }
+.rest-item-row { display: flex; align-items: flex-start; justify-content: space-between; padding: 6px 8px; border-radius: 6px; gap: 8px; }
+.rest-item-row:hover { background: var(--bg); }
+.rest-item-left { flex: 1; min-width: 0; }
+.rest-item-name-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.rest-item-name { font-size: 12px; font-weight: 500; color: var(--text); }
+.rest-item-desc { font-size: 11px; color: var(--text3); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rest-add-item-btn { display: flex; align-items: center; justify-content: center; gap: 5px; font-size: 11px; color: var(--text3); padding: 5px 10px; border-radius: 0 0 7px 7px; cursor: pointer; border: none; border-top: 1px dashed var(--border-med); background: none; font-family: 'DM Sans', sans-serif; transition: all 0.12s; width: 100%; }
+.rest-add-item-btn:hover { color: var(--orange); background: var(--orange-light); }
+.add-restaurant-btn { display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 11px; color: var(--text2); padding: 8px 12px; border-radius: 8px; cursor: pointer; border: 1px dashed var(--border-med); background: none; font-family: 'DM Sans', sans-serif; transition: all 0.12s; width: 100%; margin-top: 6px; }
+.add-restaurant-btn:hover { border-color: var(--orange-mid); color: var(--orange); background: var(--orange-light); }
+.dmc-title-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.dmc-rest-count { font-size: 10px; color: var(--text3); font-weight: 400; background: var(--surface2); padding: 2px 7px; border-radius: 10px; border: 1px solid var(--border); }
+/* Add item modal tweaks */
+.mgmt-modal-box { width: 460px; }
+.mgmt-section-tag { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 20px; margin-bottom: 4px; }
+.mgmt-day-tag { background: var(--blue-bg); color: var(--blue); }
+.mgmt-rest-tag { background: var(--surface2); color: var(--text2); border: 1px solid var(--border); }
+
 .menu-item { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; transition: all 0.12s; }
 .menu-item:hover { border-color: var(--orange-mid); }
 .menu-item.sel { border-color: var(--orange); background: var(--orange-light); }
@@ -624,25 +651,30 @@ tr.hidden-row { display: none; }
           </div>
 
           <div class="card">
-            <div class="card-title" style="margin-bottom:14px">Add menu item</div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+              <div class="card-title" style="margin-bottom:0">Quick add</div>
+              <div style="font-size:11px;color:var(--text3)">Or use + Add item inside a restaurant above</div>
+            </div>
             <div class="row">
-              <div class="col">
-                <div class="field-label">Item name</div>
-                <input type="text" id="new-item-name" placeholder="e.g. Grilled Salmon Bowl">
-              </div>
               <div class="col" style="max-width:140px">
                 <div class="field-label">Day</div>
-                <select id="new-item-day">
+                <select id="new-item-day" onchange="refreshRestaurantDropdown()">
                   <option value="tue">Tuesday</option>
                   <option value="wed">Wednesday</option>
                   <option value="thu">Thursday</option>
                 </select>
               </div>
+              <div class="col">
+                <div class="field-label">Restaurant</div>
+                <select id="new-item-restaurant">
+                  <!-- populated by refreshRestaurantDropdown() -->
+                </select>
+              </div>
             </div>
             <div class="row">
               <div class="col">
-                <div class="field-label">Description</div>
-                <input type="text" id="new-item-desc" placeholder="Short description of the meal">
+                <div class="field-label">Item name</div>
+                <input type="text" id="new-item-name" placeholder="e.g. Grilled Salmon Bowl">
               </div>
               <div class="col" style="max-width:160px">
                 <div class="field-label">Dietary tag</div>
@@ -654,6 +686,12 @@ tr.hidden-row { display: none; }
                   <option value="Contains nuts">Contains nuts</option>
                   <option value="Contains gluten">Contains gluten</option>
                 </select>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col">
+                <div class="field-label">Description <span style="color:var(--text3);font-weight:400">(optional)</span></div>
+                <input type="text" id="new-item-desc" placeholder="Short description of the meal">
               </div>
             </div>
             <div style="display:flex;gap:8px">
@@ -843,6 +881,14 @@ tr.hidden-row { display: none; }
       </div>
     </div>
 
+    <!-- Menu management modal (add/edit restaurant, add item) -->
+    <div id="menu-mgmt-modal" class="modal-overlay" style="display:none" onclick="if(event.target===this)closeMenuMgmtModal()">
+      <div class="modal-box mgmt-modal-box">
+        <button class="modal-close" onclick="closeMenuMgmtModal()">✕</button>
+        <div id="menu-mgmt-modal-content"></div>
+      </div>
+    </div>
+
   </div>
 </div>
 </div>
@@ -891,53 +937,53 @@ const PLATE_DAYS = [
 
 const DEFAULT_MENUS = {
   'default': {
-    tue: { caterer: 'Culinary Co.', items: [
+    tue: { caterer: 'Culinary Co.', restaurants: ['Culinary Co.'], items: [
       { name: 'Teriyaki Chicken Bowl',     desc: 'Brown rice, edamame, teriyaki glaze, sesame seeds',         dietary: 'GF',    restaurant: 'Culinary Co.'    },
       { name: 'Veggie Banh Mi',            desc: 'Pickled daikon, cucumber, sriracha mayo, baguette',         dietary: 'Vegan', restaurant: 'Culinary Co.'    },
       { name: 'Turkey Club Wrap',          desc: 'Roasted turkey, bacon, lettuce, tomato, flour tortilla',    dietary: '',      restaurant: 'Culinary Co.'    },
     ]},
     // Wednesday intentionally uses TWO restaurants to demonstrate split manifests
-    wed: { caterer: 'Olive & Vine · Farmhouse Kitchen', items: [
+    wed: { caterer: 'Olive & Vine · Farmhouse Kitchen', restaurants: ['Olive & Vine', 'Farmhouse Kitchen'], items: [
       { name: 'Grilled Salmon Bowl',       desc: 'Brown rice, edamame, cucumber, ginger dressing',            dietary: 'GF',    restaurant: 'Olive & Vine'    },
       { name: 'Chicken Caesar Wrap',       desc: 'Romaine, parmesan, house dressing, flour tortilla',         dietary: '',      restaurant: 'Olive & Vine'    },
       { name: 'Roasted Veggie Grain Bowl', desc: 'Quinoa, roasted peppers, tahini, fresh herbs',              dietary: 'Vegan', restaurant: 'Farmhouse Kitchen'},
       { name: 'Turkey & Brie Sandwich',    desc: 'Shaved turkey, brie, arugula, fig jam, sourdough',          dietary: '',      restaurant: 'Farmhouse Kitchen'},
     ]},
-    thu: { caterer: 'Smokehouse Co.', items: [
+    thu: { caterer: 'Smokehouse Co.', restaurants: ['Smokehouse Co.'], items: [
       { name: 'BBQ Brisket Plate',         desc: 'Slow-smoked brisket, coleslaw, cornbread',                  dietary: '',      restaurant: 'Smokehouse Co.'  },
       { name: 'Cauliflower Tacos',         desc: 'Roasted cauliflower, black beans, avocado, corn tortillas', dietary: 'Vegan', restaurant: 'Smokehouse Co.'  },
       { name: 'Cobb Salad',               desc: 'Romaine, chicken, bacon, blue cheese, hardboiled egg',       dietary: 'GF',    restaurant: 'Smokehouse Co.'  },
     ]},
   },
   'London, UK': {
-    tue: { caterer: 'The Canteen', items: [
+    tue: { caterer: 'The Canteen', restaurants: ['The Canteen'], items: [
       { name: 'Fish & Chips',             desc: 'Beer-battered cod, chunky chips, mushy peas',               dietary: '',           restaurant: 'The Canteen' },
       { name: 'Halloumi Wrap',            desc: 'Grilled halloumi, hummus, roasted veg, flatbread',          dietary: 'Vegetarian', restaurant: 'The Canteen' },
       { name: 'Chicken Tikka Bowl',       desc: 'Basmati rice, tikka masala, raita',                         dietary: 'GF',         restaurant: 'The Canteen' },
     ]},
-    wed: { caterer: 'The Canteen', items: [
+    wed: { caterer: 'The Canteen', restaurants: ['The Canteen'], items: [
       { name: "Shepherd's Pie",           desc: 'Minced lamb, root vegetables, mashed potato topping',      dietary: '',           restaurant: 'The Canteen' },
       { name: 'Falafel Wrap',             desc: 'Fried falafel, tahini, pickled cabbage, flatbread',        dietary: 'Vegan',      restaurant: 'The Canteen' },
       { name: 'Caesar Salad',             desc: 'Cos lettuce, croutons, parmesan, house dressing',          dietary: 'Vegetarian', restaurant: 'The Canteen' },
     ]},
-    thu: { caterer: 'The Canteen', items: [
+    thu: { caterer: 'The Canteen', restaurants: ['The Canteen'], items: [
       { name: 'Peri Peri Chicken',        desc: 'Flame-grilled chicken thighs, rice, piri piri sauce',  dietary: 'GF',         restaurant: 'The Canteen' },
       { name: 'Mushroom Risotto',         desc: 'Arborio rice, wild mushrooms, parmesan, truffle oil',  dietary: 'Vegetarian', restaurant: 'The Canteen' },
       { name: 'BLT Sandwich',             desc: 'Bacon, lettuce, tomato, mayo, sourdough',               dietary: '',           restaurant: 'The Canteen' },
     ]},
   },
   'San Francisco, CA': {
-    tue: { caterer: 'Bay Kitchen', items: [
+    tue: { caterer: 'Bay Kitchen', restaurants: ['Bay Kitchen'], items: [
       { name: 'Miso Glazed Salmon',       desc: 'Soba noodles, edamame, pickled ginger',                  dietary: 'GF',    restaurant: 'Bay Kitchen' },
       { name: 'Sourdough BLT',            desc: 'Heirloom tomato, bacon, aioli, local sourdough',         dietary: '',      restaurant: 'Bay Kitchen' },
       { name: 'Mission Burrito Bowl',     desc: 'Black beans, cilantro rice, pico de gallo, guacamole',  dietary: 'Vegan', restaurant: 'Bay Kitchen' },
     ]},
-    wed: { caterer: 'Bay Kitchen', items: [
+    wed: { caterer: 'Bay Kitchen', restaurants: ['Bay Kitchen'], items: [
       { name: 'Dungeness Crab Roll',      desc: 'Fresh crab, avocado, cucumber, ponzu',                   dietary: 'GF',    restaurant: 'Bay Kitchen' },
       { name: 'Veggie Banh Mi',           desc: 'Pickled daikon, cucumber, sriracha mayo, baguette',      dietary: 'Vegan', restaurant: 'Bay Kitchen' },
       { name: 'Chicken Pesto Wrap',       desc: 'Grilled chicken, basil pesto, arugula, tomato',          dietary: '',      restaurant: 'Bay Kitchen' },
     ]},
-    thu: { caterer: 'Bay Kitchen', items: [
+    thu: { caterer: 'Bay Kitchen', restaurants: ['Bay Kitchen'], items: [
       { name: 'Korean BBQ Bowl',          desc: 'Bulgogi beef, kimchi fried rice, sesame spinach',         dietary: 'GF',    restaurant: 'Bay Kitchen' },
       { name: 'Mushroom Tacos',           desc: 'Portobello, chipotle crema, cabbage slaw, corn tortillas',dietary: 'Vegan', restaurant: 'Bay Kitchen' },
       { name: 'Club Sandwich',            desc: 'Turkey, swiss, bacon, tomato, avocado, toasted bread',   dietary: '',      restaurant: 'Bay Kitchen' },
@@ -1715,10 +1761,45 @@ function notifHardCancel(id) {
 // ADMIN MENU VIEW
 // ─────────────────────────────────────────────────────────────────────────────
 
+// ─── HTML escape utility ─────────────────────────────────────────────────────
+function escHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+// ─── Restaurant helpers ──────────────────────────────────────────────────────
+const ADMIN_OFFICE = 'Austin, TX';
+
+function getMenuRestaurants(dayKey, menu) {
+  const d = menu[dayKey];
+  if (!d) return [];
+  // Use explicit restaurants array if present (persisted order)
+  if (d.restaurants && d.restaurants.length) return d.restaurants;
+  // Fall back: derive from item.restaurant fields
+  const seen = new Set();
+  const result = [];
+  (d.items || []).forEach(item => {
+    const r = item.restaurant || '(Unassigned)';
+    if (!seen.has(r)) { seen.add(r); result.push(r); }
+  });
+  return result;
+}
+
+function ensureRestaurantsArray(dayKey, menu) {
+  if (!menu[dayKey]) return;
+  if (!menu[dayKey].restaurants || !menu[dayKey].restaurants.length) {
+    menu[dayKey].restaurants = getMenuRestaurants(dayKey, menu);
+  }
+}
+
+// ─── Admin menu grid renderer ────────────────────────────────────────────────
 function renderAdminMenuGrid() {
-  const ADMIN_OFFICE = 'Austin, TX';
-  const menu   = getFullMenu(ADMIN_OFFICE);
-  const grid   = document.getElementById('admin-menu-grid');
+  const menu = getFullMenu(ADMIN_OFFICE);
+  const grid = document.getElementById('admin-menu-grid');
 
   const weekKey = document.getElementById('admin-week-sel').value;
   const WEEKS = {
@@ -1726,71 +1807,340 @@ function renderAdminMenuGrid() {
     jun9:  { tue: 'Jun 10', wed: 'Jun 11', thu: 'Jun 12', liveDay: null  },
     jun16: { tue: 'Jun 17', wed: 'Jun 18', thu: 'Jun 19', liveDay: null  },
   };
-  const week = WEEKS[weekKey];
-  const today = week.liveDay; // only the current live week gets the orange "live" badge
+  const week  = WEEKS[weekKey];
+  const today = week.liveDay;
 
   const DAY_META = {
-    tue: { label: `Tuesday ${week.tue}`,   key: 'tue' },
-    wed: { label: `Wednesday ${week.wed}`, key: 'wed' },
-    thu: { label: `Thursday ${week.thu}`,  key: 'thu' },
+    tue: { label: `Tuesday ${week.tue}`,   full: 'Tuesday'   },
+    wed: { label: `Wednesday ${week.wed}`, full: 'Wednesday' },
+    thu: { label: `Thursday ${week.thu}`,  full: 'Thursday'  },
   };
 
   let html = '';
   ['tue','wed','thu'].forEach(dayKey => {
-    const d   = menu[dayKey];
-    const meta = DAY_META[dayKey];
-    const isToday = dayKey === today;
+    const d           = menu[dayKey];
+    const meta        = DAY_META[dayKey];
+    const isToday     = dayKey === today;
+    const restaurants = getMenuRestaurants(dayKey, menu);
+    const allItems    = (d && d.items) ? d.items : [];
+    const restCount   = restaurants.length;
+
     html += `<div class="day-menu-card ${isToday ? 'today' : ''}">
-      <div class="dmc-title">
-        <span>${meta.label}${isToday ? ' · live' : ''}</span>
-      </div>
-      `;
-    if (!d || !d.items.length) {
-      html += `<div style="font-size:11px;color:var(--text3);padding:6px 0">No items yet</div>`;
+      <div class="dmc-title-row">
+        <div class="dmc-title" style="margin-bottom:0">
+          ${meta.label}${isToday ? `&nbsp;<span style="font-size:10px;color:var(--orange);font-weight:700;letter-spacing:0.05em">LIVE</span>` : ''}
+        </div>
+        <span class="dmc-rest-count">${restCount} restaurant${restCount !== 1 ? 's' : ''}</span>
+      </div>`;
+
+    if (!restCount) {
+      html += `<div style="font-size:12px;color:var(--text3);padding:10px 0 6px;text-align:center;font-style:italic">No restaurants yet — add one below</div>`;
     } else {
-      d.items.forEach((item, idx) => {
-        const badge = item.dietary ? `<span class="badge ${dietaryBadgeClass(item.dietary)}" style="font-size:9px">${item.dietary}</span>` : '';
-        html += `<div class="dmc-item">
-          <span class="dmc-item-name">${item.name}</span>
-          <div class="dmc-item-actions">
-            ${badge}
-            <button class="btn btn-sm btn-icon" title="Remove" onclick="removeMenuItem('${dayKey}',${idx})" style="color:var(--text3);border-color:transparent;padding:3px 5px;font-size:12px">✕</button>
+      restaurants.forEach(restName => {
+        const restItems = allItems.filter(i => (i.restaurant || '(Unassigned)') === restName);
+        const safeRest  = restName.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+        html += `<div class="rest-group">
+          <div class="rest-group-header">
+            <div class="rest-group-name">
+              <span class="rest-group-name-icon">🏪</span>
+              <span class="rest-group-name-text">${escHtml(restName)}</span>
+              <span class="rest-group-count">${restItems.length} item${restItems.length !== 1 ? 's' : ''}</span>
+            </div>
+            <div class="rest-group-actions">
+              <button class="btn btn-sm btn-icon" title="Rename restaurant"
+                onclick="openRenameRestaurantModal('${dayKey}','${safeRest}')"
+                style="font-size:12px;padding:3px 6px;color:var(--text2)">✏</button>
+              <button class="btn btn-sm btn-icon btn-danger" title="Remove restaurant"
+                onclick="confirmRemoveRestaurant('${dayKey}','${safeRest}')"
+                style="font-size:12px;padding:3px 6px">✕</button>
+            </div>
           </div>
+          <div class="rest-group-items">`;
+
+        if (!restItems.length) {
+          html += `<div style="font-size:11px;color:var(--text3);padding:7px 8px;font-style:italic">No items yet</div>`;
+        } else {
+          restItems.forEach(item => {
+            const realIdx = allItems.indexOf(item);
+            const badge   = item.dietary
+              ? `<span class="badge ${dietaryBadgeClass(item.dietary)}" style="font-size:9px">${escHtml(item.dietary)}</span>`
+              : '';
+            html += `<div class="rest-item-row">
+              <div class="rest-item-left">
+                <div class="rest-item-name-row">
+                  <span class="rest-item-name">${escHtml(item.name)}</span>
+                  ${badge}
+                </div>
+                ${item.desc ? `<div class="rest-item-desc">${escHtml(item.desc)}</div>` : ''}
+              </div>
+              <button class="btn btn-sm btn-icon" title="Remove item"
+                onclick="removeMenuItemByIdx('${dayKey}',${realIdx})"
+                style="color:var(--text3);border-color:transparent;flex-shrink:0;padding:3px 5px;font-size:12px">✕</button>
+            </div>`;
+          });
+        }
+
+        html += `</div>
+          <button class="rest-add-item-btn"
+            onclick="openAddItemModal('${dayKey}','${safeRest}')">
+            ＋ Add item to ${escHtml(restName)}
+          </button>
         </div>`;
       });
     }
-    html += `</div>`;
+
+    html += `<button class="add-restaurant-btn" onclick="openAddRestaurantModal('${dayKey}')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+        Add restaurant to ${meta.full}
+      </button>
+    </div>`;
   });
+
   grid.innerHTML = html;
+
+  // Keep the quick-add restaurant dropdown in sync with current day
+  refreshRestaurantDropdown();
 }
 
-function addMenuItem() {
-  const name    = document.getElementById('new-item-name').value.trim();
-  const dayKey  = document.getElementById('new-item-day').value;
-  const desc    = document.getElementById('new-item-desc').value.trim();
-  const dietary = document.getElementById('new-item-dietary').value;
+// ─── Quick-add form restaurant dropdown ──────────────────────────────────────
+function refreshRestaurantDropdown() {
+  const dayKey = document.getElementById('new-item-day') ? document.getElementById('new-item-day').value : 'tue';
+  const sel    = document.getElementById('new-item-restaurant');
+  if (!sel) return;
+  const menu   = getFullMenu(ADMIN_OFFICE);
+  const rests  = getMenuRestaurants(dayKey, menu);
+  if (!rests.length) {
+    sel.innerHTML = `<option value="">— no restaurants yet —</option>`;
+  } else {
+    sel.innerHTML = rests.map(r => `<option value="${escHtml(r)}">${escHtml(r)}</option>`).join('');
+  }
+}
 
+// ─── Menu management modal helpers ──────────────────────────────────────────
+let _menuMgmtState = {};
+
+function closeMenuMgmtModal() {
+  document.getElementById('menu-mgmt-modal').style.display = 'none';
+  _menuMgmtState = {};
+}
+
+// ─── Add restaurant ───────────────────────────────────────────────────────────
+function openAddRestaurantModal(dayKey) {
+  _menuMgmtState = { mode: 'add-restaurant', dayKey };
+  const dayLabel = { tue: 'Tuesday', wed: 'Wednesday', thu: 'Thursday' }[dayKey];
+  document.getElementById('menu-mgmt-modal-content').innerHTML = `
+    <div style="margin-bottom:18px">
+      <div style="font-size:15px;font-weight:600;letter-spacing:-0.2px;margin-bottom:4px">Add restaurant</div>
+      <div style="font-size:12px;color:var(--text2)">Adding a restaurant to <strong>${dayLabel}</strong>'s menu. You can add items to it once created.</div>
+    </div>
+    <div style="margin-bottom:18px">
+      <div class="field-label">Restaurant / caterer name</div>
+      <input type="text" id="mgmt-restaurant-name" placeholder="e.g. Olive &amp; Vine" style="width:100%"
+        onkeydown="if(event.key==='Enter')saveNewRestaurant()">
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn btn-sm" onclick="closeMenuMgmtModal()">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="saveNewRestaurant()">Add restaurant</button>
+    </div>`;
+  document.getElementById('menu-mgmt-modal').style.display = 'flex';
+  setTimeout(() => document.getElementById('mgmt-restaurant-name').focus(), 60);
+}
+
+function saveNewRestaurant() {
+  const { dayKey } = _menuMgmtState;
+  const name = document.getElementById('mgmt-restaurant-name').value.trim();
+  if (!name) { showToast('Please enter a restaurant name.', 'error'); return; }
+
+  const menu = getFullMenu(ADMIN_OFFICE);
+  if (!menu[dayKey]) menu[dayKey] = { caterer: name, items: [], restaurants: [] };
+  ensureRestaurantsArray(dayKey, menu);
+
+  if (menu[dayKey].restaurants.includes(name)) {
+    showToast('A restaurant with that name already exists for this day.', 'error'); return;
+  }
+  menu[dayKey].restaurants.push(name);
+  menu[dayKey].caterer = menu[dayKey].restaurants.join(' · ');
+  saveStoredMenu(ADMIN_OFFICE, menu);
+  closeMenuMgmtModal();
+  renderAdminMenuGrid();
+  const dayLabel = { tue: 'Tuesday', wed: 'Wednesday', thu: 'Thursday' }[dayKey];
+  showToast(`"${name}" added to ${dayLabel}`, 'success');
+}
+
+// ─── Rename restaurant ────────────────────────────────────────────────────────
+function openRenameRestaurantModal(dayKey, restaurantName) {
+  _menuMgmtState = { mode: 'edit-restaurant', dayKey, restaurantName };
+  const dayLabel = { tue: 'Tuesday', wed: 'Wednesday', thu: 'Thursday' }[dayKey];
+  document.getElementById('menu-mgmt-modal-content').innerHTML = `
+    <div style="margin-bottom:18px">
+      <div style="font-size:15px;font-weight:600;letter-spacing:-0.2px;margin-bottom:4px">Rename restaurant</div>
+      <div style="font-size:12px;color:var(--text2)">${dayLabel}'s menu · All items will be updated automatically.</div>
+    </div>
+    <div style="margin-bottom:18px">
+      <div class="field-label">Restaurant name</div>
+      <input type="text" id="mgmt-restaurant-name" value="${escHtml(restaurantName)}" style="width:100%"
+        onkeydown="if(event.key==='Enter')saveRenameRestaurant()">
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn btn-sm" onclick="closeMenuMgmtModal()">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="saveRenameRestaurant()">Save name</button>
+    </div>`;
+  document.getElementById('menu-mgmt-modal').style.display = 'flex';
+  setTimeout(() => {
+    const el = document.getElementById('mgmt-restaurant-name');
+    el.focus(); el.select();
+  }, 60);
+}
+
+function saveRenameRestaurant() {
+  const { dayKey, restaurantName: oldName } = _menuMgmtState;
+  const newName = document.getElementById('mgmt-restaurant-name').value.trim();
+  if (!newName) { showToast('Please enter a name.', 'error'); return; }
+  if (newName === oldName) { closeMenuMgmtModal(); return; }
+
+  const menu = getFullMenu(ADMIN_OFFICE);
+  ensureRestaurantsArray(dayKey, menu);
+  const idx = menu[dayKey].restaurants.indexOf(oldName);
+  if (idx !== -1) menu[dayKey].restaurants[idx] = newName;
+  (menu[dayKey].items || []).forEach(item => {
+    if (item.restaurant === oldName) item.restaurant = newName;
+  });
+  menu[dayKey].caterer = menu[dayKey].restaurants.join(' · ') || 'Culinary Co.';
+  saveStoredMenu(ADMIN_OFFICE, menu);
+  closeMenuMgmtModal();
+  renderAdminMenuGrid();
+  showToast(`Renamed to "${newName}"`, 'success');
+}
+
+// ─── Remove restaurant (with confirmation) ────────────────────────────────────
+function confirmRemoveRestaurant(dayKey, restaurantName) {
+  const menu       = getFullMenu(ADMIN_OFFICE);
+  const allItems   = (menu[dayKey] && menu[dayKey].items) || [];
+  const restItems  = allItems.filter(i => (i.restaurant || '(Unassigned)') === restaurantName);
+  const dayLabel   = { tue: 'Tuesday', wed: 'Wednesday', thu: 'Thursday' }[dayKey];
+
+  const warningHtml = restItems.length ? `
+    <div style="background:var(--red-bg);border:1px solid #e87a7a;border-radius:8px;padding:11px 14px;margin-bottom:18px;font-size:12px;color:var(--red);display:flex;gap:8px;align-items:flex-start">
+      <span style="font-size:14px;flex-shrink:0">⚠</span>
+      <span>This will also permanently delete <strong>${restItems.length} menu item${restItems.length !== 1 ? 's' : ''}</strong> associated with this restaurant.</span>
+    </div>` : '';
+
+  document.getElementById('menu-mgmt-modal-content').innerHTML = `
+    <div style="margin-bottom:18px">
+      <div style="font-size:15px;font-weight:600;letter-spacing:-0.2px;margin-bottom:4px">Remove restaurant?</div>
+      <div style="font-size:12px;color:var(--text2)">Remove <strong>${escHtml(restaurantName)}</strong> from ${dayLabel}?</div>
+    </div>
+    ${warningHtml}
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn btn-sm" onclick="closeMenuMgmtModal()">Cancel</button>
+      <button class="btn btn-sm btn-danger" onclick="doRemoveRestaurant('${dayKey}','${restaurantName.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}')">Remove restaurant</button>
+    </div>`;
+  document.getElementById('menu-mgmt-modal').style.display = 'flex';
+}
+
+function doRemoveRestaurant(dayKey, restaurantName) {
+  const menu = getFullMenu(ADMIN_OFFICE);
+  if (menu[dayKey]) {
+    ensureRestaurantsArray(dayKey, menu);
+    menu[dayKey].restaurants = menu[dayKey].restaurants.filter(r => r !== restaurantName);
+    menu[dayKey].items       = (menu[dayKey].items || []).filter(i =>
+      (i.restaurant || '(Unassigned)') !== restaurantName
+    );
+    menu[dayKey].caterer = menu[dayKey].restaurants.join(' · ') || 'Culinary Co.';
+  }
+  saveStoredMenu(ADMIN_OFFICE, menu);
+  closeMenuMgmtModal();
+  renderAdminMenuGrid();
+  showToast(`"${restaurantName}" removed`, 'success');
+}
+
+// ─── Add item via modal ───────────────────────────────────────────────────────
+function openAddItemModal(dayKey, restaurantName) {
+  _menuMgmtState = { mode: 'add-item', dayKey, restaurantName };
+  const dayLabel = { tue: 'Tuesday', wed: 'Wednesday', thu: 'Thursday' }[dayKey];
+  document.getElementById('menu-mgmt-modal-content').innerHTML = `
+    <div style="margin-bottom:18px">
+      <div style="font-size:15px;font-weight:600;letter-spacing:-0.2px;margin-bottom:8px">Add menu item</div>
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+        <span class="mgmt-section-tag mgmt-day-tag">📅 ${dayLabel}</span>
+        <span class="mgmt-section-tag mgmt-rest-tag">🏪 ${escHtml(restaurantName)}</span>
+      </div>
+    </div>
+    <div style="margin-bottom:14px">
+      <div class="field-label">Item name</div>
+      <input type="text" id="mgmt-item-name" placeholder="e.g. Grilled Salmon Bowl" style="width:100%"
+        onkeydown="if(event.key==='Enter')document.getElementById('mgmt-item-desc').focus()">
+    </div>
+    <div style="margin-bottom:14px">
+      <div class="field-label">Description <span style="color:var(--text3);font-weight:400">(optional)</span></div>
+      <input type="text" id="mgmt-item-desc" placeholder="Short description of the meal" style="width:100%">
+    </div>
+    <div style="margin-bottom:22px">
+      <div class="field-label">Dietary tag</div>
+      <select id="mgmt-item-dietary" style="width:100%">
+        <option value="">None</option>
+        <option value="GF">Gluten-free</option>
+        <option value="Vegan">Vegan</option>
+        <option value="Vegetarian">Vegetarian</option>
+        <option value="Contains nuts">Contains nuts</option>
+        <option value="Contains gluten">Contains gluten</option>
+      </select>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn btn-sm" onclick="closeMenuMgmtModal()">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="saveItemFromModal()">Add item</button>
+    </div>`;
+  document.getElementById('menu-mgmt-modal').style.display = 'flex';
+  setTimeout(() => document.getElementById('mgmt-item-name').focus(), 60);
+}
+
+function saveItemFromModal() {
+  const { dayKey, restaurantName } = _menuMgmtState;
+  const name    = document.getElementById('mgmt-item-name').value.trim();
+  const desc    = document.getElementById('mgmt-item-desc').value.trim();
+  const dietary = document.getElementById('mgmt-item-dietary').value;
   if (!name) { showToast('Please enter an item name.', 'error'); return; }
 
-  const ADMIN_OFFICE = 'Austin, TX';
   const menu = getFullMenu(ADMIN_OFFICE);
-  if (!menu[dayKey]) menu[dayKey] = { caterer: 'Culinary Co.', items: [] };
-  menu[dayKey].items.push({ name, desc, dietary });
+  if (!menu[dayKey]) menu[dayKey] = { caterer: restaurantName, items: [], restaurants: [restaurantName] };
+  menu[dayKey].items.push({ name, desc, dietary, restaurant: restaurantName });
+  saveStoredMenu(ADMIN_OFFICE, menu);
+  closeMenuMgmtModal();
+  renderAdminMenuGrid();
+  showToast(`"${name}" added`, 'success');
+}
+
+// ─── Remove item by global index ──────────────────────────────────────────────
+function removeMenuItemByIdx(dayKey, idx) {
+  const menu = getFullMenu(ADMIN_OFFICE);
+  if (menu[dayKey] && menu[dayKey].items) {
+    const removed = menu[dayKey].items.splice(idx, 1);
+    saveStoredMenu(ADMIN_OFFICE, menu);
+    renderAdminMenuGrid();
+    if (removed.length) showToast(`"${removed[0].name}" removed`, 'success');
+  }
+}
+
+// ─── Quick-add form (legacy path, now restaurant-aware) ───────────────────────
+function addMenuItem() {
+  const name       = document.getElementById('new-item-name').value.trim();
+  const dayKey     = document.getElementById('new-item-day').value;
+  const desc       = document.getElementById('new-item-desc').value.trim();
+  const dietary    = document.getElementById('new-item-dietary').value;
+  const restSel    = document.getElementById('new-item-restaurant');
+  const restaurant = restSel ? restSel.value : '';
+
+  if (!name) { showToast('Please enter an item name.', 'error'); return; }
+  if (!restaurant) { showToast('Please add a restaurant to this day first.', 'error'); return; }
+
+  const menu = getFullMenu(ADMIN_OFFICE);
+  if (!menu[dayKey]) menu[dayKey] = { caterer: restaurant, items: [], restaurants: [restaurant] };
+  menu[dayKey].items.push({ name, desc, dietary, restaurant });
   saveStoredMenu(ADMIN_OFFICE, menu);
   clearMenuForm();
   renderAdminMenuGrid();
-  showToast(`"${name}" added to ${['Tuesday','Wednesday','Thursday'][['tue','wed','thu'].indexOf(dayKey)]}'s menu.`, 'success');
-}
-
-function removeMenuItem(dayKey, idx) {
-  const ADMIN_OFFICE = 'Austin, TX';
-  const menu = getFullMenu(ADMIN_OFFICE);
-  if (menu[dayKey] && menu[dayKey].items) {
-    menu[dayKey].items.splice(idx, 1);
-    saveStoredMenu(ADMIN_OFFICE, menu);
-    renderAdminMenuGrid();
-    showToast('Item removed.', 'success');
-  }
+  const dayLabel = { tue: 'Tuesday', wed: 'Wednesday', thu: 'Thursday' }[dayKey];
+  showToast(`"${name}" added to ${dayLabel} · ${restaurant}`, 'success');
 }
 
 function clearMenuForm() {
