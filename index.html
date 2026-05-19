@@ -244,6 +244,99 @@ tr.hidden-row { display: none; }
 @keyframes slideUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
 .view.active { animation: fadeIn 0.18s ease; }
 .anim-in { animation: fadeIn 0.2s ease; }
+
+/* ── Mobile bottom nav ── */
+.mobile-nav {
+  display: none;
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  padding: 6px 0;
+  padding-bottom: max(6px, env(safe-area-inset-bottom));
+  z-index: 20;
+  grid-template-columns: repeat(4, 1fr);
+}
+.mobile-nav-item {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 3px; padding: 6px 4px 2px;
+  font-size: 10px; font-weight: 500; color: var(--text3);
+  cursor: pointer; position: relative; transition: color 0.12s;
+}
+.mobile-nav-item svg { width: 22px; height: 22px; stroke: currentColor; flex-shrink: 0; }
+.mobile-nav-item.active { color: var(--orange); }
+.mobile-nav-badge {
+  position: absolute; top: 4px; right: calc(50% - 18px);
+  background: var(--orange); color: #fff;
+  font-size: 9px; font-weight: 700;
+  min-width: 16px; height: 16px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0 4px;
+}
+
+/* ── Mobile responsive ── */
+@media (max-width: 768px) {
+  .sidebar { display: none; }
+  .mobile-nav { display: grid; }
+  .main { margin-left: 0; }
+  .content { padding: 16px 16px 88px; }
+  .topbar { padding: 0 16px; height: 50px; }
+  .page-sub { display: none; }
+  .page-title { font-size: 14px; }
+
+  /* Stack all two-col layouts */
+  .two-col,
+  .two-col-wide { grid-template-columns: 1fr; gap: 0; }
+
+  /* Un-stick sidebar summary cards when stacked */
+  .two-col > div:last-child .card,
+  .two-col-wide > div:last-child .card { position: static !important; top: auto !important; }
+
+  /* Move order summary above form on mobile for context */
+  .two-col > div:last-child { order: -1; }
+
+  /* Grids */
+  .stat-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 16px; }
+  .stat-val { font-size: 22px; }
+  .menu-week { grid-template-columns: 1fr; }
+  .day-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .day-btn { padding: 10px 6px; font-size: 12px; }
+  .office-grid { grid-template-columns: 1fr 1fr; }
+
+  /* Cards */
+  .card { padding: 16px; margin-bottom: 12px; }
+  .card-title { font-size: 13px; }
+
+  /* Tables scroll horizontally */
+  .tbl-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  table { min-width: 520px; }
+
+  /* Row fields stack */
+  .row { flex-direction: column; gap: 10px; }
+  .col { max-width: 100% !important; }
+
+  /* Ticket */
+  .ticket-meta-grid { grid-template-columns: 1fr 1fr; }
+  .ticket-pickup-time { font-size: 20px; }
+
+  /* Slack messages */
+  .slack-msg { font-size: 12px; line-height: 1.6; }
+
+  /* Buttons full-width on summary */
+  #confirm-btn, #sameday-confirm-btn { width: 100%; justify-content: center; }
+
+  /* Notifications max-width off on mobile */
+  #notif > div { max-width: 100%; }
+
+  /* Ops filter row wraps */
+  #ops > div:first-child { flex-wrap: wrap; gap: 8px; }
+  #ops > div:first-child select { font-size: 12px; }
+
+  /* Admin menu week stacks */
+  #admin-menu-grid.menu-week { grid-template-columns: 1fr; }
+
+  /* Same-day order form fields */
+  #sameday-form .row { flex-direction: column; }
+}
 </style>
 </head>
 <body>
@@ -605,6 +698,27 @@ tr.hidden-row { display: none; }
 </div>
 </div>
 
+<!-- Mobile bottom nav -->
+<nav class="mobile-nav" id="mobile-nav">
+  <div class="mobile-nav-item active" data-view="order" onclick="switchView('order', this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+    <span>My orders</span>
+  </div>
+  <div class="mobile-nav-item" data-view="sameday" onclick="switchView('sameday', this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    <span>Same-day</span>
+  </div>
+  <div class="mobile-nav-item" data-view="notif" onclick="switchView('notif', this)" style="position:relative">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+    <span>Alerts</span>
+    <span class="mobile-nav-badge" id="mobile-notif-badge" style="display:none">0</span>
+  </div>
+  <div class="mobile-nav-item" data-view="admin" onclick="switchView('admin', this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2"/></svg>
+    <span>Admin</span>
+  </div>
+</nav>
+
 <script>
 // ─────────────────────────────────────────────────────────────────────────────
 // DEMO CONFIG
@@ -904,9 +1018,15 @@ function updateNotifBadge() {
   const orders   = loadOrders();
   const todayStr = DEMO_TODAY;
   const count    = orders.filter(o => o.iso >= todayStr && o.status === 'confirmed').length;
-  const badge    = document.getElementById('notif-count');
-  if (count > 0) { badge.style.display = ''; badge.textContent = count; }
-  else           { badge.style.display = 'none'; }
+  const badge        = document.getElementById('notif-count');
+  const mobileBadge  = document.getElementById('mobile-notif-badge');
+  if (count > 0) {
+    badge.style.display = ''; badge.textContent = count;
+    mobileBadge.style.display = ''; mobileBadge.textContent = count;
+  } else {
+    badge.style.display = 'none';
+    mobileBadge.style.display = 'none';
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1542,10 +1662,16 @@ function switchView(id, el) {
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.getElementById(id).classList.add('active');
-  el.classList.add('active');
+  // Sync both sidebar and mobile nav active states
+  document.querySelectorAll(`.nav-item[onclick*="'${id}'"]`).forEach(n => n.classList.add('active'));
+  document.querySelectorAll(`#mobile-nav .mobile-nav-item`).forEach(n => {
+    n.classList.toggle('active', n.dataset.view === id);
+  });
   const t = pageTitles[id];
   document.querySelector('.page-title').textContent = t.title;
   document.querySelector('.page-sub').textContent   = t.sub;
+  // Scroll to top on mobile when switching views
+  window.scrollTo({ top: 0, behavior: 'smooth' });
   // Lazy-render views when first opened
   if (id === 'sameday') renderSamedayMenu();
   if (id === 'notif')   renderNotifications();
