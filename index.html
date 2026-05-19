@@ -483,6 +483,7 @@ tr.hidden-row { display: none; }
     <div id="order" class="view active">
       <div class="two-col">
         <div>
+          <div id="upcoming-orders-section"></div>
           <div class="card">
             <div class="card-title">Office location</div>
             <div class="card-sub" style="margin-bottom:14px">Auto-detected from your Procore profile — change if visiting another office</div>
@@ -1244,6 +1245,38 @@ function renderOrderHistory() {
   container.innerHTML = html;
 }
 
+function renderUpcomingOrders() {
+  const container = document.getElementById('upcoming-orders-section');
+  if (!container) return;
+  const orders   = loadOrders();
+  const upcoming = orders
+    .filter(o => o.iso >= DEMO_TODAY && o.status === 'confirmed')
+    .sort((a, b) => a.iso.localeCompare(b.iso));
+  if (!upcoming.length) { container.innerHTML = ''; return; }
+
+  let html = `<div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <div class="card-title" style="margin-bottom:0">Your orders this week</div>
+      <span class="badge badge-green">${upcoming.length} confirmed</span>
+    </div>`;
+  upcoming.forEach(o => {
+    html += `<div class="order-history-item">
+      <div>
+        <div class="ohi-title">${o.dayLabel} · ${o.office}</div>
+        <div class="ohi-sub">${o.meal}</div>
+        <div class="ohi-meta">Pickup: ${o.pickup} · ${o.window}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+        <span class="badge badge-green">Confirmed</span>
+        <button class="btn btn-sm" onclick="editOrder('${o.id}')">Edit</button>
+        <button class="btn btn-sm btn-danger" onclick="cancelOrder('${o.id}')">Cancel</button>
+      </div>
+    </div>`;
+  });
+  html += `</div>`;
+  container.innerHTML = html;
+}
+
 function renderMealCards() {
   const area = document.getElementById('meal-selection-area');
   const activeDays = PLATE_DAYS.filter(d => state.selectedDays.has(d.key));
@@ -1428,7 +1461,7 @@ function confirmOrder() {
   upsertOrders(newOrders);
   state.selectedDays = new Set(); state.selectedMeals = {}; state.editingDays = new Set();
   document.querySelectorAll('.day-btn').forEach(b => b.classList.remove('sel'));
-  renderMealCards(); renderSummary(); updateDayBadges(); updateNotifBadge();
+  renderMealCards(); renderSummary(); renderUpcomingOrders(); updateDayBadges(); updateNotifBadge();
   const n = newOrders.length;
   showToast(wasEditing ? `Order${n>1?'s':''} updated!` : `${n} order${n>1?'s':''} confirmed! You'll get a Slack reminder on the day.`, 'success');
 }
@@ -1439,7 +1472,7 @@ function cancelOrder(id) {
   if (idx === -1) return;
   orders[idx].status = 'cancelled';
   persistOrders(orders);
-  updateDayBadges(); updateNotifBadge();
+  renderUpcomingOrders(); updateDayBadges(); updateNotifBadge();
   showToast('Order cancelled. The ops team has been notified.', 'success');
 }
 
@@ -2709,6 +2742,7 @@ function showToast(msg, type = 'success') {
 
 (function init() {
   seedDemoHistory();        // pre-load past-week demo orders so history isn't empty
+  renderUpcomingOrders();
   renderSummary();
   updateDayBadges();
   updateNotifBadge();
