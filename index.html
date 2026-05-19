@@ -2546,7 +2546,7 @@ function renderHistory() {
   const reviewedCount  = past.filter(o => o.status === 'confirmed' && reviews[o.id]).length;
   const pendingReviews = past.filter(o => o.status === 'confirmed' && !reviews[o.id]).length;
 
-  let html = `<div class="info-banner">
+  html += `<div class="info-banner">
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>
     ${past.length} past order${past.length!==1?'s':''} · ${reviewedCount} reviewed · ${pendingReviews} awaiting your rating
   </div>`;
