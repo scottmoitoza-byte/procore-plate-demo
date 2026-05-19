@@ -130,6 +130,31 @@ select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.o
 .cutoff-banner { background: var(--amber-bg); border: 1px solid #FAC775; border-radius: 8px; padding: 11px 16px; font-size: 12px; color: var(--amber); margin-bottom: 12px; display: flex; align-items: flex-start; gap: 10px; }
 .cutoff-banner svg { flex-shrink: 0; margin-top: 1px; }
 
+/* ── Ops drill-down ── */
+.ops-row-clickable { cursor: pointer; }
+.ops-row-clickable:hover td { background: var(--orange-light) !important; }
+.ops-row-clickable.expanded td { background: var(--orange-light) !important; font-weight: 600; }
+.ops-row-clickable td:first-child::before { content: '▶'; font-size: 9px; color: var(--text3); margin-right: 7px; display: inline-block; transition: transform 0.15s; }
+.ops-row-clickable.expanded td:first-child::before { transform: rotate(90deg); color: var(--orange); }
+.ops-detail-row td { padding: 0 !important; border-bottom: 2px solid var(--orange-mid) !important; }
+.ops-detail-panel { padding: 20px 24px; background: #FAFAF8; border-top: 1px solid var(--border); animation: fadeIn 0.18s ease; }
+.day-tab-bar { display: flex; gap: 6px; margin-bottom: 16px; }
+.day-tab { padding: 6px 16px; border-radius: 20px; font-size: 12px; font-weight: 500; cursor: pointer; border: 1px solid var(--border-med); background: var(--surface); color: var(--text2); transition: all 0.12s; }
+.day-tab.active { background: var(--orange); color: #fff; border-color: var(--orange); }
+.detail-tbl th { background: #FAFAF8 !important; font-size: 11px; padding: 8px 12px !important; }
+.detail-tbl td { padding: 9px 12px !important; font-size: 12px; }
+.detail-tbl { min-width: 0 !important; }
+.manifest-preview { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; font-family: 'DM Mono', monospace; font-size: 12px; line-height: 1.8; white-space: pre-wrap; max-height: 380px; overflow-y: auto; color: var(--text); }
+
+/* ── Report modal ── */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 50; display: flex; align-items: center; justify-content: center; animation: fadeIn 0.15s ease; }
+.modal-box { background: var(--surface); border-radius: var(--radius-lg); padding: 28px 30px; width: 640px; max-width: 96vw; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.2); position: relative; }
+.modal-close { position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 18px; cursor: pointer; color: var(--text3); }
+
+/* ── Reporting card in ops ── */
+.send-schedule-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+.schedule-status { font-size: 11px; color: var(--text2); background: var(--bg); border: 1px solid var(--border); border-radius: 20px; padding: 3px 10px; }
+
 .menu-item { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; transition: all 0.12s; }
 .menu-item:hover { border-color: var(--orange-mid); }
 .menu-item.sel { border-color: var(--orange); background: var(--orange-light); }
@@ -747,7 +772,40 @@ tr.hidden-row { display: none; }
         </table>
       </div>
 
-      <div class="section-label">All orders today — by office</div>
+      <!-- Restaurant reporting card -->
+      <div class="card" style="margin-bottom:20px">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+          <div>
+            <div class="card-title" style="margin-bottom:2px">Restaurant manifest</div>
+            <div class="card-sub">Send or download the kitchen order report for any office</div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn btn-sm" onclick="openManifestModal('Austin, TX','wed')">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Download manifest
+            </button>
+            <button class="btn btn-primary btn-sm" onclick="openManifestModal('Austin, TX','wed',true)">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              Send to restaurant
+            </button>
+          </div>
+        </div>
+        <div class="send-schedule-row">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <span style="font-size:12px;color:var(--text2)">Auto-send schedule:</span>
+          <select id="manifest-schedule-sel" style="width:auto;font-size:12px;padding:5px 10px" onchange="saveManifestSchedule()">
+            <option value="">Off</option>
+            <option value="12">Daily at 12:00 PM</option>
+            <option value="14">Daily at 2:00 PM</option>
+            <option value="16" selected>Daily at 4:00 PM</option>
+            <option value="17">Daily at 5:00 PM</option>
+          </select>
+          <span class="schedule-status" id="manifest-schedule-status">Next send: Today at 4:00 PM CT</span>
+          <button class="btn btn-sm" onclick="openManifestModal('Austin, TX','wed',true)" style="font-size:11px">Send now</button>
+        </div>
+      </div>
+
+      <div class="section-label">All orders today — by office <span style="font-weight:400;font-size:10px;color:var(--text3);margin-left:6px">Click any row to see employee detail</span></div>
       <div class="tbl-wrap">
         <table style="table-layout:fixed" id="ops-table">
           <thead>
@@ -757,23 +815,31 @@ tr.hidden-row { display: none; }
               <th style="width:10%">Orders</th>
               <th style="width:12%">Confirmed</th>
               <th style="width:11%">Cancelled</th>
-              <th style="width:13%">Up for grabs</th>
-              <th style="width:18%">Menu status</th>
+              <th style="width:11%">Up for grabs</th>
+              <th style="width:20%">Actions</th>
             </tr>
           </thead>
           <tbody id="ops-tbody">
-            <tr data-region="Americas" data-office="Austin, TX"><td style="font-weight:500">Austin, TX</td><td><span class="badge badge-blue">Americas</span></td><td>47</td><td>43</td><td>3</td><td>2</td><td><span class="badge badge-green">Live</span></td></tr>
-            <tr data-region="Americas" data-office="Carpinteria, CA"><td style="font-weight:500">Carpinteria, CA</td><td><span class="badge badge-blue">Americas</span></td><td>38</td><td>36</td><td>1</td><td>1</td><td><span class="badge badge-green">Live</span></td></tr>
-            <tr data-region="Americas" data-office="San Francisco, CA"><td style="font-weight:500">San Francisco, CA</td><td><span class="badge badge-blue">Americas</span></td><td>52</td><td>49</td><td>2</td><td>2</td><td><span class="badge badge-green">Live</span></td></tr>
-            <tr data-region="Americas" data-office="Heredia, CR"><td style="font-weight:500">Heredia, CR</td><td><span class="badge badge-blue">Americas</span></td><td>22</td><td>20</td><td>1</td><td>0</td><td><span class="badge badge-green">Live</span></td></tr>
-            <tr data-region="Americas" data-office="Tampa, FL"><td style="font-weight:500">Tampa, FL</td><td><span class="badge badge-blue">Americas</span></td><td>22</td><td>22</td><td>0</td><td>0</td><td><span class="badge badge-green">Live</span></td></tr>
-            <tr data-region="EMEA" data-office="London, UK"><td style="font-weight:500">London, UK</td><td><span class="badge badge-orange">EMEA</span></td><td>41</td><td>38</td><td>3</td><td>2</td><td><span class="badge badge-green">Live</span></td></tr>
-            <tr data-region="EMEA" data-office="Dublin, IR"><td style="font-weight:500">Dublin, IR</td><td><span class="badge badge-orange">EMEA</span></td><td>29</td><td>27</td><td>1</td><td>1</td><td><span class="badge badge-green">Live</span></td></tr>
-            <tr data-region="EMEA" data-office="Cairo, EG"><td style="font-weight:500">Cairo, EG</td><td><span class="badge badge-orange">EMEA</span></td><td>18</td><td>17</td><td>1</td><td>0</td><td><span class="badge badge-green">Live</span></td></tr>
-            <tr data-region="APAC" data-office="Sydney, AU"><td style="font-weight:500">Sydney, AU</td><td><span class="badge badge-purple">APAC</span></td><td>33</td><td>31</td><td>2</td><td>1</td><td><span class="badge badge-green">Live</span></td></tr>
-            <tr data-region="APAC" data-office="Pune, IN"><td style="font-weight:500">Pune, IN</td><td><span class="badge badge-purple">APAC</span></td><td>28</td><td>26</td><td>0</td><td>0</td><td><span class="badge badge-green">Live</span></td></tr>
+            <tr class="ops-row-clickable" data-region="Americas" data-office="Austin, TX" onclick="toggleOfficeDetail(this,'Austin, TX')"><td>Austin, TX</td><td><span class="badge badge-blue">Americas</span></td><td>47</td><td>43</td><td>3</td><td>2</td><td><button class="btn btn-sm" style="font-size:11px;pointer-events:none">View details</button></td></tr>
+            <tr class="ops-row-clickable" data-region="Americas" data-office="Carpinteria, CA" onclick="toggleOfficeDetail(this,'Carpinteria, CA')"><td>Carpinteria, CA</td><td><span class="badge badge-blue">Americas</span></td><td>38</td><td>36</td><td>1</td><td>1</td><td><button class="btn btn-sm" style="font-size:11px;pointer-events:none">View details</button></td></tr>
+            <tr class="ops-row-clickable" data-region="Americas" data-office="San Francisco, CA" onclick="toggleOfficeDetail(this,'San Francisco, CA')"><td>San Francisco, CA</td><td><span class="badge badge-blue">Americas</span></td><td>52</td><td>49</td><td>2</td><td>2</td><td><button class="btn btn-sm" style="font-size:11px;pointer-events:none">View details</button></td></tr>
+            <tr class="ops-row-clickable" data-region="Americas" data-office="Heredia, CR" onclick="toggleOfficeDetail(this,'Heredia, CR')"><td>Heredia, CR</td><td><span class="badge badge-blue">Americas</span></td><td>22</td><td>20</td><td>1</td><td>0</td><td><button class="btn btn-sm" style="font-size:11px;pointer-events:none">View details</button></td></tr>
+            <tr class="ops-row-clickable" data-region="Americas" data-office="Tampa, FL" onclick="toggleOfficeDetail(this,'Tampa, FL')"><td>Tampa, FL</td><td><span class="badge badge-blue">Americas</span></td><td>22</td><td>22</td><td>0</td><td>0</td><td><button class="btn btn-sm" style="font-size:11px;pointer-events:none">View details</button></td></tr>
+            <tr class="ops-row-clickable" data-region="EMEA" data-office="London, UK" onclick="toggleOfficeDetail(this,'London, UK')"><td>London, UK</td><td><span class="badge badge-orange">EMEA</span></td><td>41</td><td>38</td><td>3</td><td>2</td><td><button class="btn btn-sm" style="font-size:11px;pointer-events:none">View details</button></td></tr>
+            <tr class="ops-row-clickable" data-region="EMEA" data-office="Dublin, IR" onclick="toggleOfficeDetail(this,'Dublin, IR')"><td>Dublin, IR</td><td><span class="badge badge-orange">EMEA</span></td><td>29</td><td>27</td><td>1</td><td>1</td><td><button class="btn btn-sm" style="font-size:11px;pointer-events:none">View details</button></td></tr>
+            <tr class="ops-row-clickable" data-region="EMEA" data-office="Cairo, EG" onclick="toggleOfficeDetail(this,'Cairo, EG')"><td>Cairo, EG</td><td><span class="badge badge-orange">EMEA</span></td><td>18</td><td>17</td><td>1</td><td>0</td><td><button class="btn btn-sm" style="font-size:11px;pointer-events:none">View details</button></td></tr>
+            <tr class="ops-row-clickable" data-region="APAC" data-office="Sydney, AU" onclick="toggleOfficeDetail(this,'Sydney, AU')"><td>Sydney, AU</td><td><span class="badge badge-purple">APAC</span></td><td>33</td><td>31</td><td>2</td><td>1</td><td><button class="btn btn-sm" style="font-size:11px;pointer-events:none">View details</button></td></tr>
+            <tr class="ops-row-clickable" data-region="APAC" data-office="Pune, IN" onclick="toggleOfficeDetail(this,'Pune, IN')"><td>Pune, IN</td><td><span class="badge badge-purple">APAC</span></td><td>28</td><td>26</td><td>0</td><td>0</td><td><button class="btn btn-sm" style="font-size:11px;pointer-events:none">View details</button></td></tr>
           </tbody>
         </table>
+      </div>
+    </div>
+
+    <!-- Manifest / send modal -->
+    <div id="manifest-modal" class="modal-overlay" style="display:none" onclick="if(event.target===this)closeManifestModal()">
+      <div class="modal-box">
+        <button class="modal-close" onclick="closeManifestModal()">✕</button>
+        <div id="manifest-modal-content"></div>
       </div>
     </div>
 
@@ -1962,6 +2028,382 @@ function resetSamedayOrder() {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// OPS DETAIL DATA
+// ─────────────────────────────────────────────────────────────────────────────
+
+const OPS_DETAIL = {
+  'Austin, TX': {
+    tue: { date: 'Tuesday, Jun 3, 2025', caterer: 'Culinary Co.', orders: [
+      { emp:'Alex Kim',        meal:'Teriyaki Chicken Bowl',     dietary:'GF',    status:'confirmed', time:'8:07 AM'},
+      { emp:'Maria Santos',    meal:'Teriyaki Chicken Bowl',     dietary:'GF',    status:'confirmed', time:'8:14 AM'},
+      { emp:'Tyler Brooks',    meal:'Turkey Club Wrap',          dietary:'',      status:'confirmed', time:'8:22 AM'},
+      { emp:'Priya Patel',     meal:'Veggie Banh Mi',            dietary:'Vegan', status:'confirmed', time:'8:31 AM'},
+      { emp:'Sam Rivera',      meal:'Teriyaki Chicken Bowl',     dietary:'GF',    status:'confirmed', time:'8:45 AM'},
+      { emp:'Chris Wong',      meal:'Turkey Club Wrap',          dietary:'',      status:'confirmed', time:'9:02 AM'},
+      { emp:'Dana Lee',        meal:'Veggie Banh Mi',            dietary:'Vegan', status:'confirmed', time:'9:11 AM'},
+      { emp:'Marcus Johnson',  meal:'Teriyaki Chicken Bowl',     dietary:'GF',    status:'confirmed', time:'9:18 AM'},
+      { emp:'Emma Clarke',     meal:'Turkey Club Wrap',          dietary:'',      status:'confirmed', time:'9:33 AM'},
+      { emp:'Jake Torres',     meal:'Veggie Banh Mi',            dietary:'Vegan', status:'confirmed', time:'9:47 AM'},
+      { emp:'Lily Chen',       meal:'Teriyaki Chicken Bowl',     dietary:'GF',    status:'confirmed', time:'10:05 AM'},
+      { emp:'Noah Williams',   meal:'Turkey Club Wrap',          dietary:'',      status:'confirmed', time:'10:12 AM'},
+      { emp:'Sofia Garcia',    meal:'Teriyaki Chicken Bowl',     dietary:'GF',    status:'confirmed', time:'10:28 AM'},
+      { emp:'Ethan Moore',     meal:'Turkey Club Wrap',          dietary:'',      status:'confirmed', time:'10:44 AM'},
+      { emp:'Rachel Park',     meal:'Veggie Banh Mi',            dietary:'Vegan', status:'confirmed', time:'11:01 AM'},
+      { emp:'Ben Nguyen',      meal:'Teriyaki Chicken Bowl',     dietary:'GF',    status:'cancelled', time:'8:59 AM'},
+    ]},
+    wed: { date: 'Wednesday, Jun 4, 2025', caterer: 'Olive & Vine', orders: [
+      { emp:'Alex Kim',        meal:'Grilled Salmon Bowl',       dietary:'GF',    status:'confirmed', time:'8:03 AM'},
+      { emp:'Maria Santos',    meal:'Chicken Caesar Wrap',       dietary:'',      status:'confirmed', time:'8:17 AM'},
+      { emp:'Tyler Brooks',    meal:'Grilled Salmon Bowl',       dietary:'GF',    status:'confirmed', time:'8:29 AM'},
+      { emp:'Priya Patel',     meal:'Roasted Veggie Grain Bowl', dietary:'Vegan', status:'confirmed', time:'8:38 AM'},
+      { emp:'Sam Rivera',      meal:'Chicken Caesar Wrap',       dietary:'',      status:'grabs',     time:'8:52 AM'},
+      { emp:'Chris Wong',      meal:'Grilled Salmon Bowl',       dietary:'GF',    status:'confirmed', time:'9:04 AM'},
+      { emp:'Dana Lee',        meal:'Roasted Veggie Grain Bowl', dietary:'Vegan', status:'confirmed', time:'9:16 AM'},
+      { emp:'Marcus Johnson',  meal:'Chicken Caesar Wrap',       dietary:'',      status:'confirmed', time:'9:27 AM'},
+      { emp:'Emma Clarke',     meal:'Grilled Salmon Bowl',       dietary:'GF',    status:'confirmed', time:'9:41 AM'},
+      { emp:'Jake Torres',     meal:'Chicken Caesar Wrap',       dietary:'',      status:'confirmed', time:'9:55 AM'},
+      { emp:'Lily Chen',       meal:'Roasted Veggie Grain Bowl', dietary:'Vegan', status:'confirmed', time:'10:08 AM'},
+      { emp:'Noah Williams',   meal:'Grilled Salmon Bowl',       dietary:'GF',    status:'confirmed', time:'10:19 AM'},
+      { emp:'Sofia Garcia',    meal:'Chicken Caesar Wrap',       dietary:'',      status:'confirmed', time:'10:33 AM'},
+      { emp:'Ethan Moore',     meal:'Grilled Salmon Bowl',       dietary:'GF',    status:'confirmed', time:'10:48 AM'},
+      { emp:'Rachel Park',     meal:'Roasted Veggie Grain Bowl', dietary:'Vegan', status:'confirmed', time:'11:02 AM'},
+      { emp:'Zoe Anderson',    meal:'Chicken Caesar Wrap',       dietary:'',      status:'cancelled', time:'9:10 AM'},
+    ]},
+    thu: { date: 'Thursday, Jun 5, 2025', caterer: 'Smokehouse Co.', orders: [
+      { emp:'Alex Kim',        meal:'Cobb Salad',                dietary:'GF',    status:'confirmed', time:'8:11 AM'},
+      { emp:'Maria Santos',    meal:'BBQ Brisket Plate',         dietary:'',      status:'confirmed', time:'8:24 AM'},
+      { emp:'Tyler Brooks',    meal:'BBQ Brisket Plate',         dietary:'',      status:'confirmed', time:'8:36 AM'},
+      { emp:'Priya Patel',     meal:'Cauliflower Tacos',         dietary:'Vegan', status:'confirmed', time:'8:49 AM'},
+      { emp:'Sam Rivera',      meal:'Cobb Salad',                dietary:'GF',    status:'confirmed', time:'9:01 AM'},
+      { emp:'Chris Wong',      meal:'BBQ Brisket Plate',         dietary:'',      status:'confirmed', time:'9:14 AM'},
+      { emp:'Dana Lee',        meal:'Cauliflower Tacos',         dietary:'Vegan', status:'confirmed', time:'9:26 AM'},
+      { emp:'Marcus Johnson',  meal:'BBQ Brisket Plate',         dietary:'',      status:'confirmed', time:'9:39 AM'},
+      { emp:'Emma Clarke',     meal:'Cobb Salad',                dietary:'GF',    status:'confirmed', time:'9:52 AM'},
+      { emp:'Jake Torres',     meal:'Cauliflower Tacos',         dietary:'Vegan', status:'confirmed', time:'10:06 AM'},
+      { emp:'Lily Chen',       meal:'BBQ Brisket Plate',         dietary:'',      status:'confirmed', time:'10:19 AM'},
+      { emp:'Noah Williams',   meal:'Cobb Salad',                dietary:'GF',    status:'confirmed', time:'10:31 AM'},
+      { emp:'Sofia Garcia',    meal:'Cauliflower Tacos',         dietary:'Vegan', status:'grabs',     time:'10:44 AM'},
+      { emp:'Ethan Moore',     meal:'BBQ Brisket Plate',         dietary:'',      status:'cancelled', time:'9:05 AM'},
+      { emp:'Rachel Park',     meal:'Cobb Salad',                dietary:'GF',    status:'confirmed', time:'11:07 AM'},
+    ]},
+  },
+  'London, UK': {
+    tue: { date:'Tuesday, Jun 3, 2025', caterer:'The Canteen', orders:[
+      {emp:'James Harper',    meal:'Fish & Chips',        dietary:'',           status:'confirmed', time:'8:10 AM'},
+      {emp:'Sophie Patel',    meal:'Halloumi Wrap',       dietary:'Vegetarian', status:'confirmed', time:'8:22 AM'},
+      {emp:'Oliver Smith',    meal:'Chicken Tikka Bowl',  dietary:'GF',         status:'confirmed', time:'8:35 AM'},
+      {emp:'Charlotte Jones', meal:'Fish & Chips',        dietary:'',           status:'confirmed', time:'8:51 AM'},
+      {emp:'Mohammed Ali',    meal:'Halloumi Wrap',       dietary:'Vegetarian', status:'confirmed', time:'9:03 AM'},
+      {emp:'Isla Watson',     meal:'Fish & Chips',        dietary:'',           status:'confirmed', time:'9:17 AM'},
+      {emp:'Liam O\'Brien',   meal:'Halloumi Wrap',       dietary:'Vegetarian', status:'grabs',     time:'9:29 AM'},
+      {emp:'Amara Osei',      meal:'Chicken Tikka Bowl',  dietary:'GF',         status:'confirmed', time:'9:44 AM'},
+      {emp:'George Taylor',   meal:'Fish & Chips',        dietary:'',           status:'confirmed', time:'9:58 AM'},
+      {emp:'Niamh Brady',     meal:'Halloumi Wrap',       dietary:'Vegetarian', status:'confirmed', time:'10:12 AM'},
+    ]},
+    wed: { date:'Wednesday, Jun 4, 2025', caterer:'The Canteen', orders:[
+      {emp:'James Harper',    meal:"Shepherd's Pie",      dietary:'',           status:'confirmed', time:'8:08 AM'},
+      {emp:'Sophie Patel',    meal:'Falafel Wrap',        dietary:'Vegan',      status:'confirmed', time:'8:21 AM'},
+      {emp:'Oliver Smith',    meal:'Caesar Salad',        dietary:'Vegetarian', status:'confirmed', time:'8:34 AM'},
+      {emp:'Charlotte Jones', meal:"Shepherd's Pie",      dietary:'',           status:'confirmed', time:'8:47 AM'},
+      {emp:'Mohammed Ali',    meal:'Falafel Wrap',        dietary:'Vegan',      status:'confirmed', time:'9:00 AM'},
+      {emp:'Isla Watson',     meal:"Shepherd's Pie",      dietary:'',           status:'confirmed', time:'9:13 AM'},
+      {emp:'Liam O\'Brien',   meal:'Falafel Wrap',        dietary:'Vegan',      status:'grabs',     time:'9:26 AM'},
+      {emp:'Amara Osei',      meal:'Caesar Salad',        dietary:'Vegetarian', status:'confirmed', time:'9:39 AM'},
+      {emp:'George Taylor',   meal:"Shepherd's Pie",      dietary:'',           status:'cancelled', time:'9:52 AM'},
+      {emp:'Niamh Brady',     meal:'Falafel Wrap',        dietary:'Vegan',      status:'confirmed', time:'10:05 AM'},
+      {emp:'Ravi Sharma',     meal:'Caesar Salad',        dietary:'Vegetarian', status:'confirmed', time:'10:18 AM'},
+      {emp:'Emily Turner',    meal:"Shepherd's Pie",      dietary:'',           status:'confirmed', time:'10:31 AM'},
+    ]},
+    thu: { date:'Thursday, Jun 5, 2025', caterer:'The Canteen', orders:[
+      {emp:'James Harper',    meal:'Peri Peri Chicken',   dietary:'GF',         status:'confirmed', time:'8:09 AM'},
+      {emp:'Sophie Patel',    meal:'Mushroom Risotto',    dietary:'Vegetarian', status:'confirmed', time:'8:22 AM'},
+      {emp:'Oliver Smith',    meal:'BLT Sandwich',        dietary:'',           status:'confirmed', time:'8:35 AM'},
+      {emp:'Charlotte Jones', meal:'Peri Peri Chicken',   dietary:'GF',         status:'confirmed', time:'8:48 AM'},
+      {emp:'Mohammed Ali',    meal:'Mushroom Risotto',    dietary:'Vegetarian', status:'confirmed', time:'9:01 AM'},
+      {emp:'Isla Watson',     meal:'BLT Sandwich',        dietary:'',           status:'confirmed', time:'9:14 AM'},
+      {emp:'Amara Osei',      meal:'Peri Peri Chicken',   dietary:'GF',         status:'confirmed', time:'9:27 AM'},
+      {emp:'George Taylor',   meal:'Mushroom Risotto',    dietary:'Vegetarian', status:'confirmed', time:'9:40 AM'},
+      {emp:'Niamh Brady',     meal:'Peri Peri Chicken',   dietary:'GF',         status:'confirmed', time:'9:53 AM'},
+      {emp:'Ravi Sharma',     meal:'BLT Sandwich',        dietary:'',           status:'confirmed', time:'10:06 AM'},
+      {emp:'Emily Turner',    meal:'Mushroom Risotto',    dietary:'Vegetarian', status:'cancelled', time:'10:19 AM'},
+    ]},
+  },
+  'San Francisco, CA': {
+    tue: { date:'Tuesday, Jun 3, 2025', caterer:'Bay Kitchen', orders:[
+      {emp:'Jordan Lee',      meal:'Miso Glazed Salmon',  dietary:'GF',    status:'confirmed', time:'8:05 AM'},
+      {emp:'Casey Morales',   meal:'Sourdough BLT',       dietary:'',      status:'confirmed', time:'8:18 AM'},
+      {emp:'Taylor Nguyen',   meal:'Mission Burrito Bowl',dietary:'Vegan', status:'confirmed', time:'8:31 AM'},
+      {emp:'Riley Chen',      meal:'Miso Glazed Salmon',  dietary:'GF',    status:'confirmed', time:'8:44 AM'},
+      {emp:'Quinn Park',      meal:'Sourdough BLT',       dietary:'',      status:'confirmed', time:'8:57 AM'},
+      {emp:'Avery Liu',       meal:'Mission Burrito Bowl',dietary:'Vegan', status:'confirmed', time:'9:10 AM'},
+      {emp:'Morgan Kim',      meal:'Miso Glazed Salmon',  dietary:'GF',    status:'confirmed', time:'9:23 AM'},
+      {emp:'Drew Patel',      meal:'Sourdough BLT',       dietary:'',      status:'confirmed', time:'9:36 AM'},
+      {emp:'Sage Brown',      meal:'Mission Burrito Bowl',dietary:'Vegan', status:'confirmed', time:'9:49 AM'},
+      {emp:'Skyler Jones',    meal:'Miso Glazed Salmon',  dietary:'GF',    status:'grabs',     time:'10:02 AM'},
+    ]},
+    wed: { date:'Wednesday, Jun 4, 2025', caterer:'Bay Kitchen', orders:[
+      {emp:'Jordan Lee',      meal:'Dungeness Crab Roll', dietary:'GF',    status:'confirmed', time:'8:07 AM'},
+      {emp:'Casey Morales',   meal:'Veggie Banh Mi',      dietary:'Vegan', status:'confirmed', time:'8:20 AM'},
+      {emp:'Taylor Nguyen',   meal:'Chicken Pesto Wrap',  dietary:'',      status:'confirmed', time:'8:33 AM'},
+      {emp:'Riley Chen',      meal:'Dungeness Crab Roll', dietary:'GF',    status:'confirmed', time:'8:46 AM'},
+      {emp:'Quinn Park',      meal:'Veggie Banh Mi',      dietary:'Vegan', status:'confirmed', time:'8:59 AM'},
+      {emp:'Avery Liu',       meal:'Chicken Pesto Wrap',  dietary:'',      status:'confirmed', time:'9:12 AM'},
+      {emp:'Morgan Kim',      meal:'Dungeness Crab Roll', dietary:'GF',    status:'confirmed', time:'9:25 AM'},
+      {emp:'Drew Patel',      meal:'Veggie Banh Mi',      dietary:'Vegan', status:'confirmed', time:'9:38 AM'},
+      {emp:'Sage Brown',      meal:'Chicken Pesto Wrap',  dietary:'',      status:'confirmed', time:'9:51 AM'},
+      {emp:'Skyler Jones',    meal:'Dungeness Crab Roll', dietary:'GF',    status:'confirmed', time:'10:04 AM'},
+      {emp:'Alex Foster',     meal:'Veggie Banh Mi',      dietary:'Vegan', status:'grabs',     time:'10:17 AM'},
+      {emp:'Blake Rivera',    meal:'Chicken Pesto Wrap',  dietary:'',      status:'cancelled', time:'10:30 AM'},
+    ]},
+    thu: { date:'Thursday, Jun 5, 2025', caterer:'Bay Kitchen', orders:[
+      {emp:'Jordan Lee',      meal:'Korean BBQ Bowl',     dietary:'GF',    status:'confirmed', time:'8:09 AM'},
+      {emp:'Casey Morales',   meal:'Mushroom Tacos',      dietary:'Vegan', status:'confirmed', time:'8:22 AM'},
+      {emp:'Taylor Nguyen',   meal:'Club Sandwich',       dietary:'',      status:'confirmed', time:'8:35 AM'},
+      {emp:'Riley Chen',      meal:'Korean BBQ Bowl',     dietary:'GF',    status:'confirmed', time:'8:48 AM'},
+      {emp:'Quinn Park',      meal:'Mushroom Tacos',      dietary:'Vegan', status:'confirmed', time:'9:01 AM'},
+      {emp:'Avery Liu',       meal:'Club Sandwich',       dietary:'',      status:'confirmed', time:'9:14 AM'},
+      {emp:'Morgan Kim',      meal:'Korean BBQ Bowl',     dietary:'GF',    status:'confirmed', time:'9:27 AM'},
+      {emp:'Drew Patel',      meal:'Club Sandwich',       dietary:'',      status:'confirmed', time:'9:40 AM'},
+      {emp:'Sage Brown',      meal:'Mushroom Tacos',      dietary:'Vegan', status:'confirmed', time:'9:53 AM'},
+      {emp:'Skyler Jones',    meal:'Korean BBQ Bowl',     dietary:'GF',    status:'confirmed', time:'10:06 AM'},
+      {emp:'Alex Foster',     meal:'Club Sandwich',       dietary:'',      status:'grabs',     time:'10:19 AM'},
+    ]},
+  },
+};
+
+// Fallback for offices not in OPS_DETAIL
+function genFallbackDetail(office, dayKey) {
+  const dayMeta = { tue:'Tuesday, Jun 3, 2025', wed:'Wednesday, Jun 4, 2025', thu:'Thursday, Jun 5, 2025' };
+  const names = ['A. Patel','B. Smith','C. Johnson','D. Lee','E. Williams','F. Garcia','G. Brown','H. Davis'];
+  const meals = ['Chef\'s selection', 'Vegetarian option', 'Daily special'];
+  return {
+    date: dayMeta[dayKey],
+    caterer: 'Local caterer',
+    orders: names.slice(0, 6).map((n, i) => ({
+      emp: n, meal: meals[i % meals.length], dietary: i === 1 ? 'Vegetarian' : '',
+      status: i === 5 ? 'cancelled' : 'confirmed', time: `${8 + Math.floor(i / 2)}:${String(i * 12 % 60).padStart(2,'0')} AM`,
+    })),
+  };
+}
+
+function getOfficeDetail(office, dayKey) {
+  return OPS_DETAIL[office]?.[dayKey] || genFallbackDetail(office, dayKey);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// OPS DRILL-DOWN
+// ─────────────────────────────────────────────────────────────────────────────
+
+let expandedOffice = null;
+
+function toggleOfficeDetail(row, office) {
+  // Close if already open
+  const existing = document.getElementById('ops-detail-row');
+  if (existing) {
+    existing.remove();
+    const prev = document.querySelector('.ops-row-clickable.expanded');
+    if (prev) prev.classList.remove('expanded');
+    if (expandedOffice === office) { expandedOffice = null; return; }
+  }
+  expandedOffice = office;
+  row.classList.add('expanded');
+  renderOfficeDetailRow(row, office, 'wed');
+}
+
+function renderOfficeDetailRow(anchorRow, office, activeDay) {
+  const detail = getOfficeDetail(office, activeDay);
+  const statusBadge = s => {
+    if (s === 'confirmed') return '<span class="badge badge-green">Confirmed</span>';
+    if (s === 'cancelled')  return '<span class="badge badge-red">Cancelled</span>';
+    if (s === 'grabs')      return '<span class="badge badge-amber">Up for grabs</span>';
+    return '';
+  };
+
+  const rows = detail.orders.map((o, i) =>
+    `<tr>
+      <td style="font-size:12px;padding:8px 12px!important">${i+1}</td>
+      <td style="font-weight:500;font-size:12px;padding:8px 12px!important">${o.emp}</td>
+      <td style="font-size:12px;padding:8px 12px!important">${o.meal}</td>
+      <td style="font-size:12px;padding:8px 12px!important">${o.dietary ? `<span class="badge ${dietaryBadgeClass(o.dietary)}">${o.dietary}</span>` : '<span style="color:var(--text3)">—</span>'}</td>
+      <td style="font-size:12px;padding:8px 12px!important">${statusBadge(o.status)}</td>
+      <td style="font-size:12px;padding:8px 12px!important;color:var(--text3)">${o.time}</td>
+    </tr>`
+  ).join('');
+
+  const confirmedCount = detail.orders.filter(o => o.status === 'confirmed').length;
+  const cancelledCount = detail.orders.filter(o => o.status === 'cancelled').length;
+  const grabsCount     = detail.orders.filter(o => o.status === 'grabs').length;
+
+  const dayTabs = ['tue','wed','thu'].map(d => {
+    const labels = { tue:'Tue Jun 3', wed:'Wed Jun 4', thu:'Thu Jun 5' };
+    return `<div class="day-tab ${d===activeDay?'active':''}" onclick="switchDetailDay('${office}','${d}')">${labels[d]}</div>`;
+  }).join('');
+
+  const tr = document.createElement('tr');
+  tr.id = 'ops-detail-row';
+  tr.className = 'ops-detail-row';
+  tr.innerHTML = `<td colspan="7">
+    <div class="ops-detail-panel">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:16px">
+        <div>
+          <div style="font-size:14px;font-weight:600;margin-bottom:2px">${office} · ${detail.date}</div>
+          <div style="font-size:12px;color:var(--text2)">Caterer: ${detail.caterer} · ${confirmedCount} confirmed, ${cancelledCount} cancelled, ${grabsCount} up for grabs</div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-sm" onclick="downloadManifestCSV('${office}','${activeDay}')">⬇ CSV</button>
+          <button class="btn btn-primary btn-sm" onclick="openManifestModal('${office}','${activeDay}',false)">View manifest</button>
+        </div>
+      </div>
+      <div class="day-tab-bar">${dayTabs}</div>
+      <div class="tbl-wrap" style="border-radius:8px">
+        <table class="detail-tbl">
+          <thead><tr>
+            <th style="width:4%">#</th>
+            <th style="width:20%">Employee</th>
+            <th style="width:32%">Meal</th>
+            <th style="width:14%">Dietary</th>
+            <th style="width:15%">Status</th>
+            <th style="width:15%">Ordered at</th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+    </div>
+  </td>`;
+  anchorRow.after(tr);
+}
+
+function switchDetailDay(office, dayKey) {
+  const anchorRow = document.querySelector('.ops-row-clickable.expanded');
+  if (!anchorRow) return;
+  renderOfficeDetailRow(anchorRow, office, dayKey);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MANIFEST GENERATION & MODAL
+// ─────────────────────────────────────────────────────────────────────────────
+
+function buildManifestText(office, dayKey) {
+  const detail = getOfficeDetail(office, dayKey);
+  const confirmed = detail.orders.filter(o => o.status === 'confirmed');
+
+  // Meal summary (counts)
+  const mealCounts = {};
+  confirmed.forEach(o => {
+    const k = o.meal + (o.dietary ? ` (${o.dietary})` : '');
+    mealCounts[k] = (mealCounts[k] || 0) + 1;
+  });
+
+  const summaryLines = Object.entries(mealCounts)
+    .sort((a,b) => b[1] - a[1])
+    .map(([meal, qty]) => `  ${String(qty).padStart(2,' ')}  ${meal}`)
+    .join('\n');
+
+  const individualLines = confirmed
+    .map((o, i) => {
+      const num = String(i+1).padStart(2,' ');
+      const name = o.emp.padEnd(20,' ');
+      const meal = o.meal.padEnd(28,' ');
+      const diet = o.dietary || '—';
+      return `  ${num}. ${name} ${meal} ${diet}`;
+    }).join('\n');
+
+  return `PROCORE PLATE — KITCHEN MANIFEST
+${'─'.repeat(52)}
+Office:       ${office}
+Date:         ${detail.date}
+Catered by:   ${detail.caterer}
+Pickup window: 12:00 – 1:00 PM
+Generated:    ${new Date().toLocaleString()}
+${'─'.repeat(52)}
+
+MEAL SUMMARY (${confirmed.length} confirmed orders)
+${summaryLines}
+
+${'─'.repeat(52)}
+INDIVIDUAL ORDERS
+  ##  Employee             Meal                         Dietary
+${individualLines}
+${'─'.repeat(52)}
+END OF MANIFEST — Please prepare by 11:45 AM`;
+}
+
+function downloadManifestCSV(office, dayKey) {
+  const detail = getOfficeDetail(office, dayKey);
+  const rows = [['#','Employee','Meal','Dietary','Status','Ordered at']];
+  detail.orders.forEach((o,i) => rows.push([i+1, o.emp, o.meal, o.dietary||'', o.status, o.time]));
+  const csv = rows.map(r => r.map(v => `"${v}"`).join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = `procore-plate-manifest-${office.replace(/[^a-z]/gi,'-').toLowerCase()}-${dayKey}.csv`;
+  a.click();
+  showToast('Manifest downloaded.', 'success');
+}
+
+function openManifestModal(office, dayKey, isSend = false) {
+  const manifest = buildManifestText(office, dayKey);
+  const detail   = getOfficeDetail(office, dayKey);
+  const dayLabels = { tue:'Tuesday Jun 3', wed:'Wednesday Jun 4', thu:'Thursday Jun 5' };
+
+  const content = document.getElementById('manifest-modal-content');
+  content.innerHTML = `
+    <div style="margin-bottom:18px">
+      <div style="font-size:16px;font-weight:600;margin-bottom:4px">${isSend ? 'Send manifest to restaurant' : 'Kitchen manifest preview'}</div>
+      <div style="font-size:12px;color:var(--text2)">${office} · ${dayLabels[dayKey] || dayKey} · ${detail.caterer}</div>
+    </div>
+    ${isSend ? `<div style="background:var(--blue-bg);border:1px solid #B5D4F5;border-radius:8px;padding:12px 14px;font-size:12px;color:var(--blue);margin-bottom:14px;display:flex;align-items:center;gap:8px">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      Will be sent to <strong>kitchen@${office.toLowerCase().replace(/[^a-z]/g,'-')}.procore.com</strong> — confirm below
+    </div>` : ''}
+    <div class="manifest-preview">${manifest}</div>
+    <div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap">
+      ${isSend ? `
+        <button class="btn btn-primary" onclick="confirmSendManifest('${office}','${dayKey}')">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          Confirm send
+        </button>` : ''}
+      <button class="btn" onclick="downloadManifestCSV('${office}','${dayKey}');closeManifestModal()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Download CSV
+      </button>
+      <button class="btn" onclick="closeManifestModal()">Close</button>
+    </div>`;
+
+  document.getElementById('manifest-modal').style.display = 'flex';
+}
+
+function confirmSendManifest(office, dayKey) {
+  closeManifestModal();
+  showToast(`Manifest sent to ${office} kitchen team! ✓`, 'success');
+}
+
+function closeManifestModal() {
+  document.getElementById('manifest-modal').style.display = 'none';
+}
+
+const MANIFEST_SCHEDULE_KEY = 'procore-plate-manifest-schedule-v1';
+
+function saveManifestSchedule() {
+  const hour = document.getElementById('manifest-schedule-sel').value;
+  localStorage.setItem(MANIFEST_SCHEDULE_KEY, hour);
+  updateManifestScheduleStatus();
+  if (hour) showToast(`Auto-send scheduled daily at ${hour >= 12 ? (hour-12||12)+':00 PM' : hour+':00 AM'} CT.`, 'success');
+}
+
+function updateManifestScheduleStatus() {
+  const hour = localStorage.getItem(MANIFEST_SCHEDULE_KEY) || '16';
+  const sel  = document.getElementById('manifest-schedule-sel');
+  const status = document.getElementById('manifest-schedule-status');
+  if (sel)    sel.value = hour;
+  if (status && hour) {
+    const h12 = hour >= 12 ? (hour-12||12)+':00 PM' : hour+':00 AM';
+    status.textContent = `Next send: Today at ${h12} CT`;
+  } else if (status) {
+    status.textContent = 'Auto-send disabled';
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // REVIEWS
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -2201,7 +2643,7 @@ function switchView(id, el) {
   if (id === 'notif')    renderNotifications();
   if (id === 'history')  renderHistory();
   if (id === 'admin')    { renderAdminMenuGrid(); renderOfficeStatusList(); syncAdminCutoffUI(); }
-  if (id === 'ops')      filterOpsTable();
+  if (id === 'ops')      { filterOpsTable(); updateManifestScheduleStatus(); }
 }
 
 const officesByRegion = {
