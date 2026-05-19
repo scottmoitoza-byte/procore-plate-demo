@@ -124,6 +124,11 @@ select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.o
 .day-btn.sel .day-date { color: var(--orange-mid); }
 .day-btn.ordered .day-date { color: var(--green); opacity: 0.7; }
 .day-badge { font-size: 9px; font-weight: 700; margin-top: 4px; letter-spacing: 0.04em; }
+.day-btn.closed { background: var(--surface2); border-color: var(--border); color: var(--text3); cursor: not-allowed; opacity: 0.7; }
+.day-btn.closed:hover { border-color: var(--border); color: var(--text3); }
+.day-btn.closed .day-date { color: var(--text3); }
+.cutoff-banner { background: var(--amber-bg); border: 1px solid #FAC775; border-radius: 8px; padding: 11px 16px; font-size: 12px; color: var(--amber); margin-bottom: 12px; display: flex; align-items: flex-start; gap: 10px; }
+.cutoff-banner svg { flex-shrink: 0; margin-top: 1px; }
 
 .menu-item { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; transition: all 0.12s; }
 .menu-item:hover { border-color: var(--orange-mid); }
@@ -481,6 +486,7 @@ tr.hidden-row { display: none; }
               </div>
             </div>
           </div>
+          <div id="cutoff-banner-area"></div>
           <div class="card">
             <div class="card-title">Which days?</div>
             <div class="card-sub" style="margin-bottom:14px">Select the days you'll be in the office this week</div>
@@ -631,6 +637,40 @@ tr.hidden-row { display: none; }
             </div>
           </div>
         </div>
+
+          <div class="card">
+            <div class="card-title" style="margin-bottom:4px">Order cutoff time</div>
+            <div class="card-sub" style="margin-bottom:16px">Set the deadline for pre-ordering each week. Times are enforced in Austin, TX local time (CT).</div>
+            <div class="row" style="align-items:flex-end;margin-bottom:0">
+              <div class="col" style="max-width:180px">
+                <div class="field-label">Cutoff time</div>
+                <select id="admin-cutoff-hour" style="width:100%">
+                  <option value="10">10:00 AM</option>
+                  <option value="11">11:00 AM</option>
+                  <option value="12">12:00 PM</option>
+                  <option value="13">1:00 PM</option>
+                  <option value="14">2:00 PM</option>
+                  <option value="15">3:00 PM</option>
+                  <option value="16" selected>4:00 PM</option>
+                  <option value="17">5:00 PM</option>
+                  <option value="18">6:00 PM</option>
+                </select>
+              </div>
+              <div class="col" style="max-width:220px">
+                <div class="field-label">Applies to</div>
+                <select id="admin-cutoff-day-scope">
+                  <option value="dayBefore">Day before each plate day</option>
+                  <option value="morning">Morning of each plate day</option>
+                </select>
+              </div>
+              <div class="col" style="max-width:120px">
+                <button class="btn btn-primary btn-sm" onclick="saveCutoffSettings()" style="width:100%">Save cutoff</button>
+              </div>
+            </div>
+            <div id="cutoff-saved-msg" style="display:none;margin-top:10px;font-size:12px;color:var(--green);font-weight:500">
+              ✓ Cutoff saved — ordering windows updated
+            </div>
+          </div>
 
         <!-- All offices status panel -->
         <div>
@@ -906,6 +946,157 @@ function saveStoredMenu(office, menu) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// ORDER CUTOFFS
+// ─────────────────────────────────────────────────────────────────────────────
+
+const CUTOFF_KEY = 'procore-plate-cutoffs-v1';
+
+// Office → IANA timezone
+const OFFICE_TZ = {
+  'Austin, TX':        'America/Chicago',
+  'Carpinteria, CA':   'America/Los_Angeles',
+  'San Francisco, CA': 'America/Los_Angeles',
+  'Edmonton, CA':      'America/Edmonton',
+  'New Orleans, LA':   'America/Chicago',
+  'Tampa, FL':         'America/New_York',
+  'Toronto, CA':       'America/Toronto',
+  'Heredia, CR':       'America/Costa_Rica',
+  'London, UK':        'Europe/London',
+  'Dublin, IR':        'Europe/Dublin',
+  'Cairo, EG':         'Africa/Cairo',
+  'Sydney, AU':        'Australia/Sydney',
+  'Pune, IN':          'Asia/Kolkata',
+  'Bangalore, IN':     'Asia/Kolkata',
+  'Dubai, AE':         'Asia/Dubai',
+  'Stavanger, NO':     'Europe/Oslo',
+};
+
+function loadCutoffSettings(office) {
+  try {
+    const all = JSON.parse(localStorage.getItem(CUTOFF_KEY) || '{}');
+    return all[office] || { hour: 16, scope: 'dayBefore' };
+  } catch { return { hour: 16, scope: 'dayBefore' }; }
+}
+
+function persistCutoffSettings(office, settings) {
+  try {
+    const all = JSON.parse(localStorage.getItem(CUTOFF_KEY) || '{}');
+    all[office] = settings;
+    localStorage.setItem(CUTOFF_KEY, JSON.stringify(all));
+  } catch {}
+}
+
+/**
+ * Returns true if ordering for a given plate day has closed.
+ *
+ * Demo logic:
+ *   DEMO_TODAY = '2025-06-02' (Monday). Plate days are Tue/Wed/Thu Jun 3–5.
+ *   - Tue (Jun 3) cutoff day = DEMO_TODAY → compare real current time vs cutoff hour in office TZ.
+ *   - Wed (Jun 4) cutoff day = Jun 3 → future relative to demo → open.
+ *   - Thu (Jun 5) cutoff day = Jun 4 → future relative to demo → open.
+ */
+function isDayClosed(day, office) {
+  const settings = loadCutoffSettings(office);
+  const tz       = OFFICE_TZ[office] || 'America/Chicago';
+
+  // Determine which calendar date the cutoff falls on
+  const plateDt = new Date(day.iso + 'T12:00:00');
+  const cutoffDt = new Date(plateDt);
+  if (settings.scope === 'dayBefore') {
+    cutoffDt.setDate(plateDt.getDate() - 1);
+  }
+  const cutoffIso = cutoffDt.toISOString().slice(0, 10);
+
+  // If the cutoff date is before DEMO_TODAY → already passed → closed
+  if (cutoffIso < DEMO_TODAY) return true;
+
+  // If the cutoff date is after DEMO_TODAY → still in the future → open
+  if (cutoffIso > DEMO_TODAY) return false;
+
+  // Cutoff date IS DEMO_TODAY: compare real current clock vs cutoff hour in office TZ
+  const now = new Date();
+  try {
+    const parts = now.toLocaleTimeString('en-US', {
+      timeZone: tz, hour: '2-digit', minute: '2-digit', hour12: false
+    }).split(':').map(Number);
+    const currentMins = parts[0] * 60 + parts[1];
+    const cutoffMins  = settings.hour * 60;
+    return currentMins >= cutoffMins;
+  } catch {
+    // Fallback: use local machine time
+    return now.getHours() >= settings.hour;
+  }
+}
+
+/**
+ * Returns a human-readable cutoff label for a given plate day & office.
+ * e.g. "Monday at 4:00 PM CT"
+ */
+function cutoffLabel(day, office) {
+  const settings = loadCutoffSettings(office);
+  const tz       = OFFICE_TZ[office] || 'America/Chicago';
+  const plateDt  = new Date(day.iso + 'T12:00:00');
+  const cutoffDt = new Date(plateDt);
+  if (settings.scope === 'dayBefore') cutoffDt.setDate(plateDt.getDate() - 1);
+
+  const dayName = cutoffDt.toLocaleDateString('en-US', { weekday: 'long' });
+  const h = settings.hour;
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  const h12  = h > 12 ? h - 12 : h === 0 ? 12 : h;
+
+  // Short TZ abbreviation
+  let tzAbbr = 'local';
+  try {
+    tzAbbr = new Intl.DateTimeFormat('en-US', { timeZone: tz, timeZoneName: 'short' })
+      .formatToParts(new Date()).find(p => p.type === 'timeZoneName')?.value || 'local';
+  } catch {}
+
+  return `${dayName} at ${h12}:00 ${ampm} ${tzAbbr}`;
+}
+
+function saveCutoffSettings() {
+  const hour  = parseInt(document.getElementById('admin-cutoff-hour').value);
+  const scope = document.getElementById('admin-cutoff-day-scope').value;
+  persistCutoffSettings('Austin, TX', { hour, scope });
+
+  const msg = document.getElementById('cutoff-saved-msg');
+  msg.style.display = 'block';
+  setTimeout(() => msg.style.display = 'none', 3000);
+
+  // Refresh day badges so closed state updates immediately
+  updateDayBadges();
+  renderCutoffBanner();
+}
+
+function renderCutoffBanner() {
+  const area = document.getElementById('cutoff-banner-area');
+  if (!area) return;
+  const closedDays = PLATE_DAYS.filter(d => isDayClosed(d, state.office));
+  if (!closedDays.length) { area.innerHTML = ''; return; }
+
+  const lines = closedDays.map(d =>
+    `<strong>${d.label}</strong> ordering closed at ${cutoffLabel(d, state.office)}`
+  ).join('<br>');
+
+  area.innerHTML = `<div class="cutoff-banner">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    <div>
+      ${lines}<br>
+      <span style="opacity:0.85">Missed the window? <span style="text-decoration:underline;cursor:pointer;font-weight:600" onclick="switchView('sameday',this)">Use same-day ordering →</span></span>
+    </div>
+  </div>`;
+}
+
+// Load saved cutoff values into admin dropdowns when admin view opens
+function syncAdminCutoffUI() {
+  const settings = loadCutoffSettings('Austin, TX');
+  const hourSel  = document.getElementById('admin-cutoff-hour');
+  const scopeSel = document.getElementById('admin-cutoff-day-scope');
+  if (hourSel)  hourSel.value  = String(settings.hour);
+  if (scopeSel) scopeSel.value = settings.scope;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // MENU HELPERS
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -1045,17 +1236,22 @@ function updateDayBadges() {
   const orders = loadOrders();
   PLATE_DAYS.forEach(day => {
     const existing = orders.find(o => o.iso === day.iso && o.office === state.office && o.status === 'confirmed');
+    const closed   = isDayClosed(day, state.office);
     const btn   = document.querySelector(`.day-btn[data-day="${day.key}"]`);
     const badge = document.getElementById(`day-badge-${day.key}`);
+    if (!btn) return;
+
     if (state.editingDays.has(day.key)) {
-      // Orange "selected" appearance — actively being edited
-      btn.classList.remove('ordered'); btn.classList.add('sel');
+      btn.classList.remove('ordered', 'closed'); btn.classList.add('sel');
       badge.textContent = 'Editing…';
     } else if (existing) {
-      btn.classList.add('ordered'); btn.classList.remove('sel');
+      btn.classList.add('ordered'); btn.classList.remove('sel', 'closed');
       badge.textContent = '✓ Ordered';
+    } else if (closed) {
+      btn.classList.add('closed'); btn.classList.remove('ordered', 'sel');
+      badge.textContent = '🔒 Ordering closed';
     } else {
-      btn.classList.remove('ordered'); btn.classList.remove('sel');
+      btn.classList.remove('ordered', 'sel', 'closed');
       badge.textContent = '';
     }
   });
@@ -1113,6 +1309,12 @@ function toggleDay(el) {
   const day    = PLATE_DAYS.find(d => d.key === dayKey);
   const orders = loadOrders();
 
+  // Block interaction if ordering window is closed
+  if (isDayClosed(day, state.office) && !state.editingDays.has(dayKey)) {
+    showToast(`Ordering for ${day.label} closed at ${cutoffLabel(day, state.office)}. Try same-day ordering instead.`, 'error');
+    return;
+  }
+
   // If this day is being edited, clicking again cancels the edit
   if (state.editingDays.has(dayKey)) {
     state.editingDays.delete(dayKey);
@@ -1144,7 +1346,7 @@ function pickMeal(el) {
 function onOfficeChange() {
   state.office = document.getElementById('office-sel').value;
   state.selectedMeals = {};
-  renderMealCards(); renderSummary(); updateDayBadges();
+  renderMealCards(); renderSummary(); updateDayBadges(); renderCutoffBanner();
 }
 
 function confirmOrder() {
@@ -1998,7 +2200,7 @@ function switchView(id, el) {
   if (id === 'sameday')  renderSamedayMenu();
   if (id === 'notif')    renderNotifications();
   if (id === 'history')  renderHistory();
-  if (id === 'admin')    { renderAdminMenuGrid(); renderOfficeStatusList(); }
+  if (id === 'admin')    { renderAdminMenuGrid(); renderOfficeStatusList(); syncAdminCutoffUI(); }
   if (id === 'ops')      filterOpsTable();
 }
 
@@ -2045,6 +2247,7 @@ function showToast(msg, type = 'success') {
   renderSummary();
   updateDayBadges();
   updateNotifBadge();
+  renderCutoffBanner();     // show cutoff warnings on My Orders if applicable
   filterOpsTable();         // initialize stat counters
 })();
 </script>
