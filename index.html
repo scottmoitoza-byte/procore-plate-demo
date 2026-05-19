@@ -245,6 +245,38 @@ tr.hidden-row { display: none; }
 .view.active { animation: fadeIn 0.18s ease; }
 .anim-in { animation: fadeIn 0.2s ease; }
 
+/* ── Star ratings & reviews ── */
+.star-rating { display: flex; gap: 2px; }
+.star {
+  font-size: 20px; cursor: pointer; color: var(--text3);
+  transition: color 0.1s, transform 0.1s;
+  line-height: 1;
+}
+.star:hover, .star.lit { color: var(--orange); }
+.star:hover { transform: scale(1.15); }
+.review-card-prompt {
+  background: var(--orange-light); border: 1px solid var(--orange-mid);
+  border-radius: var(--radius); padding: 16px 18px; margin-bottom: 12px;
+}
+.review-submitted {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 12px; color: var(--green); font-weight: 500; margin-top: 8px;
+}
+.history-week-label {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.08em;
+  color: var(--text3); text-transform: uppercase; margin: 0 0 10px;
+}
+.history-order-row {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 14px 0; border-bottom: 1px solid var(--border);
+}
+.history-order-row:last-child { border-bottom: none; }
+.history-meal-icon {
+  width: 36px; height: 36px; border-radius: 9px; background: var(--surface2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; flex-shrink: 0;
+}
+
 /* ── Mobile bottom nav ── */
 .mobile-nav {
   display: none;
@@ -254,7 +286,7 @@ tr.hidden-row { display: none; }
   padding: 6px 0;
   padding-bottom: max(6px, env(safe-area-inset-bottom));
   z-index: 20;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
 }
 .mobile-nav-item {
   display: flex; flex-direction: column; align-items: center;
@@ -379,6 +411,10 @@ tr.hidden-row { display: none; }
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0"/></svg>
       Notifications
       <span class="nav-badge" id="notif-count" style="display:none">0</span>
+    </div>
+    <div class="nav-item" onclick="switchView('history', this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 9 15"/><path d="M3.05 11a9 9 0 1 1 .5 4"/><polyline points="3 16 3.05 11 8 11"/></svg>
+      Order history
     </div>
     <div class="nav-section-label">Admin</div>
     <div class="nav-item" onclick="switchView('admin', this)">
@@ -608,6 +644,13 @@ tr.hidden-row { display: none; }
       </div>
     </div>
 
+    <!-- ── ORDER HISTORY VIEW ── -->
+    <div id="history" class="view">
+      <div style="max-width:720px">
+        <div id="history-content"></div>
+      </div>
+    </div>
+
     <!-- ── OPS VIEW ── -->
     <div id="ops" class="view">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
@@ -712,6 +755,10 @@ tr.hidden-row { display: none; }
     <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0"/></svg>
     <span>Alerts</span>
     <span class="mobile-nav-badge" id="mobile-notif-badge" style="display:none">0</span>
+  </div>
+  <div class="mobile-nav-item" data-view="history" onclick="switchView('history', this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 9 15"/><path d="M3.05 11a9 9 0 1 1 .5 4"/><polyline points="3 16 3.05 11 8 11"/></svg>
+    <span>History</span>
   </div>
   <div class="mobile-nav-item" data-view="admin" onclick="switchView('admin', this)">
     <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2"/></svg>
@@ -1194,7 +1241,73 @@ function renderNotifications() {
     </div>`;
   });
 
+  // ── "Rate your recent meals" section (past confirmed, unreviewed) ──
+  const reviews     = loadReviews();
+  const twoWeeksAgo = '2025-05-18';
+  const recentPast  = orders.filter(o =>
+    o.iso < DEMO_TODAY && o.iso >= twoWeeksAgo && o.status === 'confirmed'
+  ).sort((a, b) => b.iso.localeCompare(a.iso));
+
+  if (recentPast.length) {
+    const allReviewed = recentPast.every(o => reviews[o.id]);
+    html += `<div class="section-label" style="margin-top:28px">Rate your recent meals</div>`;
+    if (allReviewed) {
+      html += `<div class="card"><div style="display:flex;align-items:center;gap:10px;color:var(--green)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        <span style="font-size:13px;font-weight:500">All meals reviewed — thanks for the feedback!</span>
+      </div></div>`;
+    } else {
+      recentPast.forEach(o => {
+        const review = reviews[o.id];
+        if (review) return; // skip already reviewed
+        html += `<div class="review-card-prompt anim-in">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+            <div style="width:32px;height:32px;background:var(--orange);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0">${mealIcon(o.meal)}</div>
+            <div>
+              <div style="font-size:13px;font-weight:600">${o.meal}</div>
+              <div style="font-size:11px;color:var(--text2)">${o.dayLabel} · ${o.office}</div>
+            </div>
+          </div>
+          <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:6px">How was your meal?</div>
+          <div class="star-rating" data-order-id="notif-${o.id}">
+            ${[1,2,3,4,5].map(n => `<span class="star" onclick="rateOrderFromNotif('${o.id}',${n})">☆</span>`).join('')}
+          </div>
+          <div id="notif-review-row-${o.id}"></div>
+        </div>`;
+      });
+    }
+  }
+
   container.innerHTML = html;
+}
+
+// Same as rateOrder but works with notif- prefixed star containers
+function rateOrderFromNotif(orderId, stars) {
+  const container = document.querySelector(`.star-rating[data-order-id="notif-${orderId}"]`);
+  if (!container) return;
+  container.querySelectorAll('.star').forEach((s, i) => {
+    s.textContent = i < stars ? '★' : '☆';
+    s.classList.toggle('lit', i < stars);
+    s.onclick = () => rateOrderFromNotif(orderId, i + 1);
+  });
+  container.dataset.chosen = stars;
+  const row = document.getElementById(`notif-review-row-${orderId}`);
+  if (row && !row.querySelector('input')) {
+    row.innerHTML = `<div class="anim-in" style="display:flex;gap:8px;margin-top:10px;align-items:center">
+      <input type="text" id="notif-comment-${orderId}" placeholder="Add a note (optional)" style="flex:1;font-size:12px;padding:6px 10px;border-radius:7px;border:1px solid var(--border-med)">
+      <button class="btn btn-primary btn-sm" onclick="submitReviewFromNotif('${orderId}')">Submit</button>
+    </div>`;
+  }
+}
+
+function submitReviewFromNotif(orderId) {
+  const container = document.querySelector(`.star-rating[data-order-id="notif-${orderId}"]`);
+  const stars   = parseInt(container?.dataset.chosen || '0');
+  const comment = (document.getElementById(`notif-comment-${orderId}`)?.value || '').trim();
+  if (!stars) { showToast('Please pick a star rating first.', 'error'); return; }
+  saveReview(orderId, stars, comment);
+  renderNotifications();
+  showToast('Thanks for the feedback! 🙌', 'success');
 }
 
 function renderNotifConfirmed(order) {
@@ -1647,15 +1760,224 @@ function resetSamedayOrder() {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// REVIEWS
+// ─────────────────────────────────────────────────────────────────────────────
+
+const REVIEWS_KEY = 'procore-plate-reviews-v1';
+
+function loadReviews() {
+  try { return JSON.parse(localStorage.getItem(REVIEWS_KEY) || '{}'); }
+  catch { return {}; }
+}
+
+function saveReview(orderId, stars, comment) {
+  const r = loadReviews();
+  r[orderId] = { stars, comment: comment || '', reviewedAt: new Date().toISOString() };
+  localStorage.setItem(REVIEWS_KEY, JSON.stringify(r));
+}
+
+// Called when a star is clicked in the history view — lights up stars & shows comment row
+function rateOrder(orderId, stars) {
+  const container = document.querySelector(`.star-rating[data-order-id="${orderId}"]`);
+  if (!container) return;
+  container.querySelectorAll('.star').forEach((s, i) => {
+    s.textContent = i < stars ? '★' : '☆';
+    s.classList.toggle('lit', i < stars);
+    // update onclick to reflect new star value
+    s.onclick = () => rateOrder(orderId, i + 1);
+  });
+  // Attach chosen rating as a data attribute so submit can read it
+  container.dataset.chosen = stars;
+  // Show comment/submit row if not already there
+  let row = document.getElementById(`review-row-${orderId}`);
+  if (!row) {
+    row = document.createElement('div');
+    row.id = `review-row-${orderId}`;
+    row.className = 'anim-in';
+    row.style.cssText = 'display:flex;gap:8px;margin-top:10px;align-items:center';
+    row.innerHTML = `
+      <input type="text" id="review-comment-${orderId}" placeholder="Quick note (optional)" style="flex:1;font-size:12px;padding:6px 10px;border-radius:7px;border:1px solid var(--border-med)">
+      <button class="btn btn-primary btn-sm" onclick="submitReview('${orderId}')">Submit</button>`;
+    container.parentElement.appendChild(row);
+  }
+}
+
+function submitReview(orderId) {
+  const container = document.querySelector(`.star-rating[data-order-id="${orderId}"]`);
+  const stars   = parseInt(container?.dataset.chosen || '0');
+  const comment = (document.getElementById(`review-comment-${orderId}`)?.value || '').trim();
+  if (!stars) { showToast('Please pick a star rating first.', 'error'); return; }
+  saveReview(orderId, stars, comment);
+  renderHistory();
+  // Also refresh notifications in case review cards are showing there
+  if (document.getElementById('notif').classList.contains('active')) renderNotifications();
+  showToast('Thanks for the feedback! 🙌', 'success');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ORDER HISTORY VIEW
+// ─────────────────────────────────────────────────────────────────────────────
+
+const MEAL_ICONS = {
+  'Teriyaki Chicken Bowl': '🍱', 'Veggie Banh Mi': '🥖', 'Turkey Club Wrap': '🌯',
+  'Grilled Salmon Bowl': '🐟', 'Chicken Caesar Wrap': '🥗', 'Roasted Veggie Grain Bowl': '🥙',
+  'BBQ Brisket Plate': '🥩', 'Cauliflower Tacos': '🌮', 'Cobb Salad': '🥗',
+  'Miso Glazed Salmon': '🐟', 'Sourdough BLT': '🥪', 'Mission Burrito Bowl': '🌯',
+  'Classic Smash Burger': '🍔', 'Crispy Chicken Sandwich': '🍗',
+  'Baja Fish Tacos (×2)': '🌮', 'Harvest Grain Bowl': '🥙', 'Margherita Flatbread': '🍕',
+};
+function mealIcon(name) { return MEAL_ICONS[name] || '🍽'; }
+
+function renderStarDisplay(stars) {
+  return [1,2,3,4,5].map(n =>
+    `<span style="font-size:18px;color:${n<=stars?'var(--orange)':'var(--border-med)'};line-height:1">${n<=stars?'★':'☆'}</span>`
+  ).join('');
+}
+
+function renderHistory() {
+  const orders  = loadOrders();
+  const reviews = loadReviews();
+  const past = orders
+    .filter(o => o.iso < DEMO_TODAY)
+    .sort((a, b) => b.iso.localeCompare(a.iso));
+
+  const container = document.getElementById('history-content');
+  if (!container) return;
+
+  if (!past.length) {
+    container.innerHTML = `
+      <div class="info-banner">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>
+        Your completed meals will show up here. Place an order and come back after lunch!
+      </div>
+      <div class="card">
+        <div class="empty-state">
+          <div class="empty-state-icon">📋</div>
+          <div class="empty-state-title">No order history yet</div>
+          <div class="empty-state-sub">Past and completed orders will appear here — you can rate meals and reorder favorites.</div>
+          <button class="btn btn-primary" onclick="switchView('order', document.querySelector('.nav-item'))">Place an order</button>
+        </div>
+      </div>`;
+    return;
+  }
+
+  // Group by ISO week (Mon–Sun)
+  const weeks = {};
+  past.forEach(o => {
+    const d = new Date(o.iso + 'T12:00:00');
+    const day = d.getDay(); // 0=Sun
+    const diff = day === 0 ? -6 : 1 - day;
+    const mon = new Date(d);
+    mon.setDate(d.getDate() + diff);
+    const wk  = mon.toISOString().slice(0, 10);
+    const lbl = 'Week of ' + mon.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    if (!weeks[wk]) weeks[wk] = { label: lbl, orders: [] };
+    weeks[wk].orders.push(o);
+  });
+
+  const reviewedCount  = past.filter(o => o.status === 'confirmed' && reviews[o.id]).length;
+  const pendingReviews = past.filter(o => o.status === 'confirmed' && !reviews[o.id]).length;
+
+  let html = `<div class="info-banner">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>
+    ${past.length} past order${past.length!==1?'s':''} · ${reviewedCount} reviewed · ${pendingReviews} awaiting your rating
+  </div>`;
+
+  Object.keys(weeks).sort((a, b) => b.localeCompare(a)).forEach(wk => {
+    const { label, orders: wkOrders } = weeks[wk];
+    html += `<div class="card">
+      <div class="history-week-label">${label}</div>`;
+
+    wkOrders.forEach(o => {
+      const isCancelled = o.status === 'cancelled';
+      const review = reviews[o.id];
+      const icon = mealIcon(o.meal);
+
+      let reviewSection = '';
+      if (isCancelled) {
+        reviewSection = `<span class="badge badge-red" style="margin-top:6px;display:inline-block">Cancelled</span>`;
+      } else if (review) {
+        reviewSection = `<div style="display:flex;align-items:center;gap:8px;margin-top:8px;flex-wrap:wrap">
+          <div>${renderStarDisplay(review.stars)}</div>
+          ${review.comment ? `<span style="font-size:12px;color:var(--text2);font-style:italic">"${review.comment}"</span>` : ''}
+          <span class="review-submitted"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Reviewed</span>
+        </div>`;
+      } else {
+        reviewSection = `<div style="margin-top:10px">
+          <div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:5px">How was your meal?</div>
+          <div class="star-rating" data-order-id="${o.id}">
+            ${[1,2,3,4,5].map(n => `<span class="star" onclick="rateOrder('${o.id}',${n})">☆</span>`).join('')}
+          </div>
+        </div>`;
+      }
+
+      html += `<div class="history-order-row">
+        <div class="history-meal-icon">${icon}</div>
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <span style="font-size:13px;font-weight:600">${o.meal}</span>
+            ${!isCancelled ? `<span class="badge badge-gray">Completed</span>` : ''}
+          </div>
+          <div style="font-size:12px;color:var(--text2);margin-top:2px">${o.dayLabel} · ${o.office}</div>
+          ${reviewSection}
+        </div>
+        ${!isCancelled ? `<button class="btn btn-sm" style="flex-shrink:0" onclick="reorderMeal('${o.id}')">Order again</button>` : ''}
+      </div>`;
+    });
+
+    html += `</div>`;
+  });
+
+  container.innerHTML = html;
+}
+
+// Pre-populate meal selection from a past order so user can re-confirm
+function reorderMeal(orderId) {
+  const orders = loadOrders();
+  const o = orders.find(ord => ord.id === orderId);
+  if (!o) return;
+  const day = PLATE_DAYS.find(d => d.iso === o.iso);
+  if (!day) {
+    showToast('That meal was from a previous week — head to My Orders to choose this week\'s menu.', 'error');
+    return;
+  }
+  switchView('order', document.querySelector('.nav-item'));
+  setTimeout(() => {
+    const menu = getMenu(o.office, day.key);
+    const item = menu.items.find(i => i.name === o.meal) || { name: o.meal, desc: o.mealDesc || '', dietary: '' };
+    state.selectedDays.add(day.key);
+    state.selectedMeals[day.key] = item;
+    renderMealCards(); renderSummary(); updateDayBadges();
+    showToast(`${o.meal} pre-selected for ${day.label} — confirm when ready.`, 'success');
+  }, 200);
+}
+
+// Seed past orders so demo history isn't empty on first load
+function seedDemoHistory() {
+  const existing = loadOrders();
+  if (existing.some(o => o.iso < DEMO_TODAY)) return; // already have past data
+  const seeds = [
+    { id: 'seed-2025-05-27', office: 'Austin, TX', region: 'americas', iso: '2025-05-27', dayLabel: 'Tuesday May 27', meal: 'Teriyaki Chicken Bowl', mealDesc: 'Brown rice, edamame, teriyaki glaze', dietary: 'GF', status: 'confirmed', orderedAt: '2025-05-26T14:00:00Z', pickup: 'Kitchen, 2nd floor', window: '12:00–1:00 PM' },
+    { id: 'seed-2025-05-28', office: 'Austin, TX', region: 'americas', iso: '2025-05-28', dayLabel: 'Wednesday May 28', meal: 'Grilled Salmon Bowl', mealDesc: 'Brown rice, edamame, cucumber, ginger dressing', dietary: 'GF', status: 'confirmed', orderedAt: '2025-05-26T14:00:00Z', pickup: 'Kitchen, 2nd floor', window: '12:00–1:00 PM' },
+    { id: 'seed-2025-05-29', office: 'Austin, TX', region: 'americas', iso: '2025-05-29', dayLabel: 'Thursday May 29', meal: 'BBQ Brisket Plate', mealDesc: 'Slow-smoked brisket, coleslaw, cornbread', dietary: '', status: 'cancelled', orderedAt: '2025-05-26T14:00:00Z', pickup: 'Kitchen, 2nd floor', window: '12:00–1:00 PM' },
+    { id: 'seed-2025-05-20', office: 'Austin, TX', region: 'americas', iso: '2025-05-20', dayLabel: 'Tuesday May 20', meal: 'Chicken Caesar Wrap', mealDesc: 'Romaine, parmesan, house dressing, flour tortilla', dietary: '', status: 'confirmed', orderedAt: '2025-05-19T14:00:00Z', pickup: 'Kitchen, 2nd floor', window: '12:00–1:00 PM' },
+    { id: 'seed-2025-05-21', office: 'Austin, TX', region: 'americas', iso: '2025-05-21', dayLabel: 'Wednesday May 21', meal: 'Roasted Veggie Grain Bowl', mealDesc: 'Quinoa, roasted peppers, tahini, fresh herbs', dietary: 'Vegan', status: 'confirmed', orderedAt: '2025-05-19T14:00:00Z', pickup: 'Kitchen, 2nd floor', window: '12:00–1:00 PM' },
+    { id: 'seed-2025-05-22', office: 'Austin, TX', region: 'americas', iso: '2025-05-22', dayLabel: 'Thursday May 22', meal: 'Cauliflower Tacos', mealDesc: 'Roasted cauliflower, black beans, avocado, corn tortillas', dietary: 'Vegan', status: 'confirmed', orderedAt: '2025-05-19T14:00:00Z', pickup: 'Kitchen, 2nd floor', window: '12:00–1:00 PM' },
+  ];
+  persistOrders([...existing, ...seeds]);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // NAVIGATION
 // ─────────────────────────────────────────────────────────────────────────────
 
 const pageTitles = {
-  order:   { title: 'My orders',        sub: 'Place and manage your meal selections'      },
-  sameday: { title: 'Same-day order',   sub: 'Order now · ready for pickup in ~15 min'   },
-  notif:   { title: 'Notifications',    sub: 'Day-of Slack reminders and cancellation flow' },
-  admin:   { title: 'Menu management',  sub: 'Austin, TX — manage your office menu'       },
-  ops:     { title: 'Operations',       sub: 'Global order dashboard — all offices'       },
+  order:   { title: 'My orders',        sub: 'Place and manage your meal selections'         },
+  sameday: { title: 'Same-day order',   sub: 'Order now · ready for pickup in ~15 min'      },
+  notif:   { title: 'Notifications',    sub: 'Day-of Slack reminders and cancellation flow'  },
+  history: { title: 'Order history',    sub: 'Past meals · rate your experience'             },
+  admin:   { title: 'Menu management',  sub: 'Austin, TX — manage your office menu'          },
+  ops:     { title: 'Operations',       sub: 'Global order dashboard — all offices'          },
 };
 
 function switchView(id, el) {
@@ -1673,10 +1995,11 @@ function switchView(id, el) {
   // Scroll to top on mobile when switching views
   window.scrollTo({ top: 0, behavior: 'smooth' });
   // Lazy-render views when first opened
-  if (id === 'sameday') renderSamedayMenu();
-  if (id === 'notif')   renderNotifications();
-  if (id === 'admin')   { renderAdminMenuGrid(); renderOfficeStatusList(); }
-  if (id === 'ops')     filterOpsTable();
+  if (id === 'sameday')  renderSamedayMenu();
+  if (id === 'notif')    renderNotifications();
+  if (id === 'history')  renderHistory();
+  if (id === 'admin')    { renderAdminMenuGrid(); renderOfficeStatusList(); }
+  if (id === 'ops')      filterOpsTable();
 }
 
 const officesByRegion = {
@@ -1717,11 +2040,12 @@ function showToast(msg, type = 'success') {
 // ─────────────────────────────────────────────────────────────────────────────
 
 (function init() {
+  seedDemoHistory();        // pre-load past-week demo orders so history isn't empty
   renderOrderHistory();
   renderSummary();
   updateDayBadges();
   updateNotifBadge();
-  filterOpsTable(); // initialize stat counters
+  filterOpsTable();         // initialize stat counters
 })();
 </script>
 </body>
